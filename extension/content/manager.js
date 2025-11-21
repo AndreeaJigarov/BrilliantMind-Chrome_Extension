@@ -11,10 +11,3 @@ chrome.storage.sync.get(["enabledModules"], ({ enabledModules }) => {
             .catch(err => console.error("Error loading module:", mod, err));
     });
 });
-
-// Listen for changes while page is open
-chrome.storage.onChanged.addListener((changes) => {
-    if (changes.enabledModules) {
-        location.reload();  // simple solution: refresh page to reapply modules
-    }
-});

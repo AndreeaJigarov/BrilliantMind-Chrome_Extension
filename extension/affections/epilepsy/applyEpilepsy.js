@@ -1,7 +1,4 @@
 export function apply() {
-    console.log("Epilepsy module not implemented yet.");
-}
-export function apply() {
     console.log("Epilepsy module activated");
 
     injectStyles();
@@ -32,11 +29,9 @@ function freezeAllGifs() {
         // Create a static image element using the same GIF source
         const staticImg = document.createElement("img");
         staticImg.src = img.src;
-        staticImg.style.objectFit = img.style.objectFit;
         staticImg.width = img.width;
         staticImg.height = img.height;
 
-        // Replace the GIF with the static version
         img.replaceWith(staticImg);
     });
     console.log(`Frozen GIFs: ${gifs.length}`);
@@ -53,7 +48,7 @@ function stopAutoplayVideos() {
             video.pause();
             video.autoplay = false;
             video.loop = false;
-            video.controls = true;      // Give user control
+            video.controls = true;
         } catch (e) {
             console.warn("Video autoplay control failed:", e);
         }

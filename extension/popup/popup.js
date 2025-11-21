@@ -7,36 +7,37 @@ document.addEventListener("DOMContentLoaded", () => {
         epilepsy: document.getElementById("epilepsy")
     };
 
-    // Load saved values
+    // Load initial state
     chrome.storage.sync.get(["enabledModules"], ({ enabledModules }) => {
         if (!enabledModules) return;
-
-        for (const mod of enabledModules) {
-            if (checkboxes[mod]) checkboxes[mod].checked = true;
+        const active = enabledModules[0]; // only one active
+        if (active && checkboxes[active]) {
+            checkboxes[active].checked = true;
         }
     });
 
-    // Add listeners to all checkboxes
+    // Clicking ANY checkbox disables the others
     for (const mod in checkboxes) {
         checkboxes[mod].addEventListener("change", () => {
-            updateModules(mod, checkboxes[mod].checked);
+            handleSelection(mod);
         });
     }
 });
 
-function updateModules(mod, enabled) {
-    chrome.storage.sync.get(["enabledModules"], ({ enabledModules }) => {
-        let list = enabledModules || [];
+function handleSelection(selected) {
+    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy"];
 
-        if (enabled) {
-            if (!list.includes(mod)) list.push(mod);
-        } else {
-            list = list.filter(m => m !== mod);
+    chrome.storage.sync.set(
+        { enabledModules: selected ? [selected] : [] },
+        () => reloadActiveTab()
+    );
+
+    // Uncheck all the others in the popup
+    modules.forEach(m => {
+        if (m !== selected) {
+            const box = document.getElementById(m);
+            if (box) box.checked = false;
         }
-
-        chrome.storage.sync.set({ enabledModules: list }, () => {
-            reloadActiveTab();
-        });
     });
 }
 

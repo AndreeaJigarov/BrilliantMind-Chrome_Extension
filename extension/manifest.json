@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "AffectHelper",
+  "description": "Accessibility enhancement for dyslexia, ADHD, color blindness, epilepsy, etc.",
+  "version": "1.0",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/manager.js"]
+    }
+  ]
+}

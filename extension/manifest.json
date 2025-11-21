@@ -16,8 +16,16 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "affections/*/*.js",
-        "affections/*/*.css"
+        "affections/base/*.js",
+        "affections/base/*.css",
+        "affections/adhd/*.js",
+        "affections/adhd/*.css",
+        "affections/color_blindness/*.js",
+        "affections/color_blindness/*.css",
+        "affections/dyslexia/*.js",
+        "affections/dyslexia/*.css",
+        "affections/epilepsy/*.js",
+        "affections/epilepsy/*.css"
       ],
       "matches": ["<all_urls>"]
     }

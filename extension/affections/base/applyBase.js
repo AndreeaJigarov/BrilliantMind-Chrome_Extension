@@ -1,10 +1,11 @@
 export function apply() {
     console.log("Base accessibility module activated");
 
-    const cssPath = chrome.runtime.getURL("affections/base/styles.css");
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = cssPath;
-
-    document.head.appendChild(link);
+    fetch(chrome.runtime.getURL("affections/base/styles.css"))
+        .then(r => r.text())
+        .then(css => {
+            const style = document.createElement("style");
+            style.textContent = css;
+            document.head.appendChild(style);
+        });
 }

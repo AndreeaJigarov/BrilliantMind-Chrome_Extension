@@ -1,25 +1,47 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const baseCheckbox = document.getElementById("base");
+    const checkboxes = {
+        base: document.getElementById("base"),
+        dyslexia: document.getElementById("dyslexia"),
+        adhd: document.getElementById("adhd"),
+        color_blindness: document.getElementById("color_blindness"),
+        epilepsy: document.getElementById("epilepsy")
+    };
 
+    // Load saved values
     chrome.storage.sync.get(["enabledModules"], ({ enabledModules }) => {
-        if (enabledModules && enabledModules.includes("base")) {
-            baseCheckbox.checked = true;
+        if (!enabledModules) return;
+
+        for (const mod of enabledModules) {
+            if (checkboxes[mod]) checkboxes[mod].checked = true;
         }
     });
 
-    baseCheckbox.addEventListener("change", async () => {
-        const isEnabled = baseCheckbox.checked;
+    // Add listeners to all checkboxes
+    for (const mod in checkboxes) {
+        checkboxes[mod].addEventListener("change", () => {
+            updateModules(mod, checkboxes[mod].checked);
+        });
+    }
+});
 
-        chrome.storage.sync.get(["enabledModules"], ({ enabledModules }) => {
-            let newList = enabledModules || [];
+function updateModules(mod, enabled) {
+    chrome.storage.sync.get(["enabledModules"], ({ enabledModules }) => {
+        let list = enabledModules || [];
 
-            if (isEnabled) {
-                if (!newList.includes("base")) newList.push("base");
-            } else {
-                newList = newList.filter(m => m !== "base");
-            }
+        if (enabled) {
+            if (!list.includes(mod)) list.push(mod);
+        } else {
+            list = list.filter(m => m !== mod);
+        }
 
-            chrome.storage.sync.set({ enabledModules: newList });
+        chrome.storage.sync.set({ enabledModules: list }, () => {
+            reloadActiveTab();
         });
     });
-});
+}
+
+function reloadActiveTab() {
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        chrome.tabs.reload(tabs[0].id);
+    });
+}

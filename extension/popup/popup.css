@@ -1,0 +1,15 @@
+body {
+  font-family: Arial;
+  width: 200px;
+  padding: 10px;
+}
+
+h2 {
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}

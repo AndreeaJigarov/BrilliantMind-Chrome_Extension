@@ -12,5 +12,14 @@
       "matches": ["<all_urls>"],
       "js": ["content/manager.js"]
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "affections/*/*.js",
+        "affections/*/*.css"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ]
 }

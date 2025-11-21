@@ -25,7 +25,10 @@
         "affections/dyslexia/*.js",
         "affections/dyslexia/*.css",
         "affections/epilepsy/*.js",
-        "affections/epilepsy/*.css"
+        "affections/epilepsy/*.css",
+        "affections/simplify/*.js",
+        "affections/simplify/*.css"
+
       ],
       "matches": ["<all_urls>"]
     }

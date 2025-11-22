@@ -2,7 +2,9 @@ function capitalize(s) {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-chrome.storage.sync.get(["enabledModules"], ({ enabledModules }) => {
+const domain = location.hostname;
+chrome.storage.local.get("site_" + domain, data => {
+    const enabledModules = data["site_" + domain] || [];
     if (!enabledModules) return;
 
     enabledModules.forEach(mod => {

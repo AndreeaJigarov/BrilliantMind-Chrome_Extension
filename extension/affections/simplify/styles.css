@@ -2,11 +2,11 @@ body {
     font-family: Arial, sans-serif !important;
     line-height: 1.7 !important;
     font-size: 18px !important;
-    margin: 20px !important;
     color: #222 !important;
+    margin: 20px !important;
 }
 
 p, h1, h2, h3, h4, h5, h6 {
-    max-width: 70ch !important;
+    max-width: 75ch !important;
     margin-bottom: 1em !important;
 }

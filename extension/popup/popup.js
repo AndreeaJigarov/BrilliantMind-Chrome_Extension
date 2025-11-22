@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy"];
+    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy", "simplify"];
     const checkboxes = Object.fromEntries(
         modules.map(id => [id, document.getElementById(id)])
     );
@@ -24,19 +24,19 @@ function applySelection(selected, isChecked) {
     const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy", "simplify"];
 
     if (isChecked) {
-        // Turn off all others
+        // Turn off all other checkboxes
         modules.forEach(m => {
             if (m !== selected) {
                 const box = document.getElementById(m);
-                box.checked = false;
+                if (box) box.checked = false;
             }
         });
 
-        // Save single active module
+        // Save only the selected module
         chrome.storage.sync.set({ enabledModules: [selected] }, reloadActiveTab);
 
     } else {
-        // If user unchecked the currently active module → no modules active
+        // Allow unchecking everything
         chrome.storage.sync.set({ enabledModules: [] }, reloadActiveTab);
     }
 }

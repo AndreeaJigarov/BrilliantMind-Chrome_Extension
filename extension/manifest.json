@@ -29,6 +29,7 @@
         "affections/simplify/*.js",
         "affections/simplify/*.css"
 
+
       ],
       "matches": ["<all_urls>"]
     }

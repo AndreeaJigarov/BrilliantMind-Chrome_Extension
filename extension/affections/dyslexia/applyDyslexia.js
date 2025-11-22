@@ -183,6 +183,41 @@ function applyBackgroundToTextAreas(chosen) {
     } catch (e) { console.warn('applyBackgroundToTextAreas failed', e); }
 }
 
+// Apply background to form controls (inputs, textareas, selects and editable regions)
+function applyBackgroundToFormControls(chosen) {
+    try {
+        if (!chosen) return;
+        const selectors = ['input[type="text"]', 'input[type="search"]', 'input[type="email"]', 'input[type="password"]', 'input:not([type])', 'textarea', 'select', '[contenteditable]'];
+        const nodes = document.querySelectorAll(selectors.join(','));
+        nodes.forEach(el => {
+            try {
+                if (!el || !(el instanceof Element)) return;
+                // skip buttons and our widget
+                const tag = el.tagName.toLowerCase();
+                if (tag === 'button') return;
+                if (el.id === 'dyslexia-pref-widget' || el.closest && el.closest('#dyslexia-pref-widget')) return;
+                const comp = window.getComputedStyle(el);
+                if (!comp) return;
+                const bg = comp.backgroundColor || '';
+                // If it's already dark or transparent, skip
+                if (!isColorCloseToWhite(bg)) return;
+                // store original inline styles
+                if (!el.hasAttribute('data-dyslexia-orig-bg')) el.setAttribute('data-dyslexia-orig-bg', el.style.backgroundColor || '');
+                if (!el.hasAttribute('data-dyslexia-orig-color')) el.setAttribute('data-dyslexia-orig-color', el.style.color || '');
+                // apply chosen background and readable foreground
+                el.style.backgroundImage = 'none';
+                el.style.backgroundColor = chosen;
+                el.style.color = el.style.color || '#111111';
+                // ensure placeholders remain readable
+                try {
+                    if (el.placeholder) el.setAttribute('data-dyslexia-orig-placeholder-color', comp.color || '');
+                } catch (e) {}
+            } catch (e) {}
+        });
+        try { document.documentElement.style.setProperty('--dyslexia-bg', chosen); } catch (e) {}
+    } catch (e) { console.warn('applyBackgroundToFormControls failed', e); }
+}
+
 function processAllHeadings(root = document) {
     const selector = '.dyslexia-friendly h1, .dyslexia-friendly h2, .dyslexia-friendly h3, .dyslexia-friendly h4, .dyslexia-friendly h5, .dyslexia-friendly h6';
     const headings = root.querySelectorAll(selector);
@@ -223,6 +258,9 @@ function applyBackgroundChoice(name, color) {
         // expose CSS variables so inputs and other controls can inherit
         try { document.documentElement.style.setProperty('--dyslexia-bg', chosen); } catch (e) {}
         try { document.documentElement.style.setProperty('--dyslexia-fg', body.style.color || '#111111'); } catch (e) {}
+        // also apply to text areas and form controls so inputs don't stay white
+        try { applyBackgroundToTextAreas(chosen); } catch (e) {}
+        try { applyBackgroundToFormControls(chosen); } catch (e) {}
     } catch (e) {
         console.warn('applyBackgroundChoice failed', e);
     }
@@ -470,8 +508,11 @@ export function apply(options = {}) {
             body.style.backgroundColor = chosen;
             body.style.color = body.style.color || '#111111';
             try { document.documentElement.style.setProperty('--dyslexia-bg', chosen); } catch (e) {}
-            // Apply to other light text-carrying areas (helps sites like Wikipedia where content sits in inner containers)
-            if (!_dyslexia_pageIsDark) applyBackgroundToTextAreas(chosen);
+            // Apply to other light text-carrying areas and form controls (helps sites like Wikipedia where content sits in inner containers)
+            if (!_dyslexia_pageIsDark) {
+                applyBackgroundToTextAreas(chosen);
+                applyBackgroundToFormControls(chosen);
+            }
         } else {
             // If the page background is white-ish and not dark, apply the gentle cream preset
             if (!_dyslexia_pageIsDark && isColorCloseToWhite(currentBg)) {
@@ -481,6 +522,7 @@ export function apply(options = {}) {
                 body.style.color = body.style.color || '#111111';
                 try { document.documentElement.style.setProperty('--dyslexia-bg', pick); } catch (e) {}
                 applyBackgroundToTextAreas(pick);
+                applyBackgroundToFormControls(pick);
             }
         }
     } catch (e) {

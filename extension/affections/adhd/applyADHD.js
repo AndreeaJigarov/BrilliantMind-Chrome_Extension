@@ -25,7 +25,7 @@ export function apply() {
             transition: opacity 0.25s, color 0.25s;
         }
 
-        figure, figure *, img, video { opacity: 1 !important; filter: none !important; text-shadow: none !important; }
+        figure, figure *, img { opacity: 1 !important; filter: none !important; text-shadow: none !important; }
 
         body { background: #fff !important; }
 
@@ -57,7 +57,6 @@ export function apply() {
     headers.forEach(h => {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        // indent based on header level
         const level = parseInt(h.tagName.substring(1)) - 1;
         cell.style.paddingLeft = `${(level - 1) * 16}px`;
         cell.innerText = h.innerText;
@@ -66,40 +65,37 @@ export function apply() {
     });
 
     summary.appendChild(table);
-
     const firstElement = document.body.firstElementChild;
     document.body.insertBefore(summary, firstElement);
 
     // --- Paragraph focus system ---
     const paragraphs = Array.from(document.querySelectorAll("p"));
-    if (!paragraphs.length) return;
-    let current = 0;
+    if (paragraphs.length) {
+        let current = 0;
+        function setFocus(idx) {
+            paragraphs.forEach((p, i) => p.classList.toggle("adhd-focus", i === idx));
+            paragraphs[idx].scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        setFocus(current);
+        function nextPara() { if (current < paragraphs.length - 1) { current++; setFocus(current); } }
+        function prevPara() { if (current > 0) { current--; setFocus(current); } }
 
-    function setFocus(idx) {
-        paragraphs.forEach((p, i) => p.classList.toggle("adhd-focus", i === idx));
-        paragraphs[idx].scrollIntoView({ behavior: "smooth", block: "center" });
+        window.addEventListener("keydown", e => {
+            if (e.key === "ArrowDown" || e.key === "PageDown") { nextPara(); e.preventDefault(); }
+            if (e.key === "ArrowUp" || e.key === "PageUp") { prevPara(); e.preventDefault(); }
+        });
+
+        let lastScroll = 0;
+        window.addEventListener("wheel", e => {
+            const now = Date.now();
+            if (now - lastScroll < 300) return;
+            if (e.deltaY > 0) nextPara(); else prevPara();
+            lastScroll = now;
+        }, { passive: false });
     }
-    setFocus(current);
-
-    function nextPara() { if (current < paragraphs.length - 1) { current++; setFocus(current); } }
-    function prevPara() { if (current > 0) { current--; setFocus(current); } }
-
-    window.addEventListener("keydown", e => {
-        if (e.key === "ArrowDown" || e.key === "PageDown") { nextPara(); e.preventDefault(); }
-        if (e.key === "ArrowUp" || e.key === "PageUp") { prevPara(); e.preventDefault(); }
-    });
-
-    let lastScroll = 0;
-    window.addEventListener("wheel", e => {
-        const now = Date.now();
-        if (now - lastScroll < 300) return;
-        if (e.deltaY > 0) nextPara();
-        else prevPara();
-        lastScroll = now;
-    }, { passive: false });
 
     // --- GIF pausing system ---
-    async function getStaticFrame(img) {
+    function getStaticFrame(img) {
         return new Promise(resolve => {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
@@ -116,19 +112,40 @@ export function apply() {
         });
     }
 
+    function findRealGifURL(img) {
+        if (img.dataset.gif) return img.dataset.gif;
+        if (img.dataset.src?.endsWith(".gif")) return img.dataset.src;
+        if (img.dataset.original?.endsWith(".gif")) return img.dataset.original;
+        if (img.dataset.preview?.endsWith(".gif")) return img.dataset.preview;
+        if (img.src.includes("giphy.com/media") && img.src.includes("_s.")) return img.src.replace("_s.", ".");
+        const picture = img.closest("picture");
+        if (picture) {
+            const source = picture.querySelector("source[srcset*='.gif'], source[type='image/gif']");
+            if (source) return source.srcset.split(" ")[0];
+        }
+        return img.src;
+    }
+
     async function replaceGif(img) {
+        if (img.dataset.gifReplaced === "true") return;
+        img.dataset.gifReplaced = "true";
+
+        const realGif = findRealGifURL(img);
         const staticSrc = await getStaticFrame(img);
+
         const wrapper = document.createElement("div");
         wrapper.style.position = "relative";
         wrapper.style.display = "inline-block";
         wrapper.style.cursor = "pointer";
+        wrapper.dataset.epilepsyWrapper = "true";
 
         const staticImg = document.createElement("img");
         staticImg.src = staticSrc || img.src;
         staticImg.style.width = img.width + "px";
+        staticImg.style.pointerEvents = "none";
 
         const overlay = document.createElement("div");
-        overlay.innerText = "⚠ GIF – Click to play";
+        overlay.innerText = "⚠ GIF – Click pentru a porni";
         overlay.style.position = "absolute";
         overlay.style.top = "0";
         overlay.style.left = "0";
@@ -140,7 +157,8 @@ export function apply() {
         overlay.style.alignItems = "center";
         overlay.style.justifyContent = "center";
         overlay.style.fontSize = "14px";
-        overlay.style.fontFamily = "sans-serif";
+        overlay.style.textAlign = "center";
+        overlay.style.pointerEvents = "none";
 
         wrapper.appendChild(staticImg);
         wrapper.appendChild(overlay);
@@ -149,12 +167,12 @@ export function apply() {
         let playing = false;
         wrapper.addEventListener("click", () => {
             if (!playing) {
-                staticImg.src = img.src; // start GIF
-                overlay.innerText = "✋ Click to stop";
+                staticImg.src = realGif;
+                overlay.innerText = "✋ Click pentru a opri GIF-ul";
                 overlay.style.background = "rgba(0,0,0,0.35)";
             } else {
-                staticImg.src = staticSrc; // stop GIF
-                overlay.innerText = "⚠ GIF – Click to play";
+                staticImg.src = staticSrc;
+                overlay.innerText = "⚠ GIF – Click pentru a porni";
                 overlay.style.background = "rgba(0,0,0,0.55)";
             }
             playing = !playing;
@@ -162,15 +180,28 @@ export function apply() {
     }
 
     function detectAndReplaceAllGifs() {
-        document.querySelectorAll("img").forEach(img => {
-            if (img.src.toLowerCase().endsWith(".gif") && !img.dataset.gifReplaced) {
-                img.dataset.gifReplaced = "true";
-                replaceGif(img);
-            }
-        });
+        const imgs = Array.from(document.querySelectorAll("img"));
+        for (const img of imgs) {
+            if (img.closest("[data-epilepsy-wrapper]")) continue;
+            if (img.dataset.gifReplaced === "true") continue;
+
+            const src = img.src?.toLowerCase() || "";
+            const looksLikeGif =
+                src.endsWith(".gif") ||
+                img.dataset.gif ||
+                img.dataset.src?.endsWith(".gif") ||
+                img.dataset.original?.endsWith(".gif") ||
+                src.includes("giphy.com/media");
+
+            if (looksLikeGif) replaceGif(img);
+        }
     }
 
-    detectAndReplaceAllGifs();
-    new MutationObserver(() => detectAndReplaceAllGifs())
-        .observe(document.body, { subtree: true, childList: true });
+    function initGifProtection() {
+        detectAndReplaceAllGifs();
+        new MutationObserver(() => detectAndReplaceAllGifs())
+            .observe(document.body, { childList: true, subtree: true });
+    }
+
+    initGifProtection();
 }

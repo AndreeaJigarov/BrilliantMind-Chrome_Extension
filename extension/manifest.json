@@ -3,16 +3,34 @@
   "name": "AffectHelper",
   "description": "Accessibility enhancement for dyslexia, ADHD, color blindness, epilepsy, etc.",
   "version": "1.0",
-  "permissions": ["activeTab", "storage", "scripting"],
+
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs"
+  ],
+
+  "host_permissions": [
+    "https://api.openai.com/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
   "action": {
     "default_popup": "popup/popup.html"
   },
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content/manager.js"]
     }
   ],
+
   "web_accessible_resources": [
     {
       "resources": [
@@ -31,10 +49,8 @@
         "affections/simplify/*.js",
         "affections/simplify/*.css",
         "affections/reader_mode/*.js",
-        "affections/reader_mode/*.css"
-
-
-
+        "affections/reader_mode/*.css",
+        "api/*.js"
       ],
       "matches": ["<all_urls>"]
     }

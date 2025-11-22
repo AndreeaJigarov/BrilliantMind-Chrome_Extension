@@ -9,148 +9,141 @@ export function apply() {
 }
 
 function runSimplify() {
-    console.log("Running simplify with Readability...");
-    
-    const article = extractWithReadability();
-    
-    if (article) {
-        applyReadabilityResult(article);
-    } else {
-        applyFallbackSimplify();
-    }
-    
-    injectReaderCSS();
+    console.log("Applying familiar styling...");
+    applyConsistentFonts();
+    //applyComfortableSpacing();
+    applyBetterContrast();
+    //applyComfortableWidth();
+    cleanupMedia();
+    improveCodeAndLists();
 }
 
-function extractWithReadability() {
-    try {
-        console.log("Extracting content with Readability...");
-        const documentClone = document.cloneNode(true);
-        const reader = new Readability(documentClone);
-        const article = reader.parse();
-        
-        if (article && article.content) {
-            console.log("Readability extraction successful");
-            return article;
-        }
-    } catch (error) {
-        console.error("Readability extraction failed:", error);
-    }
-    
-    return null;
-}
-
-function applyReadabilityResult(article) {
-    document.head.innerHTML = '';
-    document.body.innerHTML = '';
-    
-    const articleElement = document.createElement('article');
-    articleElement.className = 'readability-article';
-    
-    if (article.title) {
-        const titleEl = document.createElement('h1');
-        titleEl.textContent = article.title;
-        titleEl.className = 'article-title';
-        articleElement.appendChild(titleEl);
-    }
-    
-    if (article.byline) {
-        const bylineEl = document.createElement('div');
-        bylineEl.className = 'article-byline';
-        bylineEl.textContent = article.byline;
-        articleElement.appendChild(bylineEl);
-    }
-    
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'article-content';
-    contentDiv.innerHTML = article.content;
-    articleElement.appendChild(contentDiv);
-    
-    document.body.appendChild(articleElement);
-}
-
-function applyFallbackSimplify() {
-    console.log("Using fallback simplification method");
-    removeExternalStyles();
-    removeInlineStyles();
-    removeImages();
-    keepMainContent();
-    flattenStructure();
-}
-
-function removeExternalStyles() {
-    document.querySelectorAll('link[rel="stylesheet"], style').forEach(el => el.remove());
-}
-
-function removeInlineStyles() {
-    document.querySelectorAll("*[style]").forEach(el => el.removeAttribute("style"));
-}
-
-function removeImages() {
-    document.querySelectorAll("img, picture, figure").forEach(img => img.remove());
-}
-
-function keepMainContent() {
-    const candidates = ["#content", "#main", "#main-content", "#article", ".content", ".main", ".article", "#mw-content-text", "[role='main']"];
-    let main = null;
-    for (const sel of candidates) {
-        const found = document.querySelector(sel);
-        if (found) {
-            main = found.cloneNode(true);
-            break;
-        }
-    }
-    if (!main) return;
-    document.body.innerHTML = "";
-    document.body.appendChild(main);
-}
-
-function flattenStructure() {
-    document.querySelectorAll("nav, header, footer, aside").forEach(el => el.remove());
-}
-
-function injectReaderCSS() {
-    const cssUrl = chrome.runtime.getURL('affections/simplify/styles.css');
-    
-    fetch(cssUrl)
-        .then(response => response.text())
-        .then(css => {
-            const style = document.createElement('style');
-            style.textContent = css;
-            document.head.appendChild(style);
-            console.log("Injected reader CSS from file");
-        })
-        .catch(error => {
-            console.error('Failed to load CSS file:', error);
-            // Fallback to basic CSS if file fails to load
-            injectFallbackCSS();
-        });
-}
-
-function injectFallbackCSS() {
-    const fallbackCSS = `
-        body { 
-            max-width: 700px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            font-family: sans-serif; 
-            line-height: 1.6; 
-        }
-        .readability-article { 
-            color: #333; 
-        }
-        .article-title { 
-            font-size: 2em; 
-            margin-bottom: 0.5em; 
-        }
-        .article-byline { 
-            color: #666; 
-            margin-bottom: 2em; 
+function applyConsistentFonts() {
+    const css = `
+        /* Step 1: Consistent fonts everywhere */
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
         }
     `;
     
     const style = document.createElement('style');
-    style.textContent = fallbackCSS;
+    style.textContent = css;
     document.head.appendChild(style);
-    console.log("Injected fallback CSS");
+}
+
+function applyComfortableSpacing() {
+    const css = `
+        /* Step 2: Comfortable line height and text spacing */
+        body {
+            line-height: 1.6 !important;
+        }
+        
+        p {
+            margin-bottom: 1.2em !important;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            line-height: 1.3 !important;
+            margin-top: 1.5em !important;
+            margin-bottom: 0.8em !important;
+        }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+    
+    console.log("Applied comfortable spacing");
+}
+
+function applyBetterContrast() {
+    const css = `
+        /* Step 3: Better text contrast and readability */
+        body {
+            color: #333 !important;
+            background: white !important;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #000 !important;
+        }
+        
+        a {
+            color: #0066cc !important;
+        }
+        
+        a:hover {
+            opacity: 0.8 !important;
+        }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+}
+
+function applyComfortableWidth() {
+    const css = `
+        /* Step 4: Comfortable max width for reading */
+        body {
+            max-width: 800px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+}
+
+function cleanupMedia() {
+    const css = `
+        /* Step 5: Clean up images and media */
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+            border-radius: 4px !important;
+        }
+        
+        video, iframe {
+            max-width: 100% !important;
+            border-radius: 4px !important;
+        }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+}
+
+function improveCodeAndLists() {
+    const css = `
+        /* Step 6: Better code blocks and lists */
+        code, pre {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+            background: #f5f5f5 !important;
+            border-radius: 3px !important;
+        }
+        
+        pre {
+            padding: 1em !important;
+            overflow-x: auto !important;
+        }
+        
+        ul, ol {
+            margin: 1em 0 !important;
+            padding-left: 2em !important;
+        }
+        
+        li {
+            margin-bottom: 0.5em !important;
+        }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
 }

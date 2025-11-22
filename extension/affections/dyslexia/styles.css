@@ -1,24 +1,43 @@
 /* Dyslexia accessibility defaults.
-	 The runtime script `applyDyslexia.js` injects additional
-	 font-face rules and a class on the document element.
+     The runtime script `applyDyslexia.js` injects additional
+     font-face rules and a class on the document element.
 
-	 - Preferred fonts: OpenDyslexic, Lexend
-	 - Fallbacks: Arial, Comic Sans, Verdana, Tahoma, Century Gothic, Trebuchet
-	 - Default font size: 12-14 pt (approx. 16-19px). The script uses 16px by default.
+     - Preferred fonts: OpenDyslexic, Lexend
+     - Fallbacks: Arial, Comic Sans, Verdana, Tahoma, Century Gothic, Trebuchet
+     - Default font size: 12-14 pt (approx. 16-19px). The script uses 16px by default.
 */
 
 /* Utility class applied to the page when dyslexia mode is enabled */
-.hermes-dyslexia, .hermes-dyslexia * {
-	font-family: 'OpenDyslexic', 'Lexend', Arial, 'Comic Sans MS', Verdana, Tahoma, 'Century Gothic', 'Trebuchet MS', sans-serif !important;
-	font-size: 16px !important;
-	line-height: 1.5 !important;
-	text-align: left !important;
-	text-transform: none !important;
-	letter-spacing: 0.2px !important;
-	word-spacing: 0.2px !important;
+.dyslexia-friendly, .dyslexia-friendly * {
+    font-family: 'OpenDyslexic', 'Lexend', Arial, 'Comic Sans MS', Verdana, Tahoma, 'Century Gothic', 'Trebuchet MS', sans-serif !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    text-align: left !important;
+    text-transform: none !important;
+    letter-spacing: 0.5px !important;
+    word-spacing: 0.3px !important;
+    text-decoration: none !important;
+    font-style: normal !important;
 }
 
 /* Small helper to increase font size if users prefer larger text */
-.hermes-dyslexia--large, .hermes-dyslexia--large * {
-	font-size: 19px !important;
+.dyslexia-friendly--large, .dyslexia-friendly--large * {
+    font-size: 19px !important;
 }
+
+/* Headings and emphasis */
+.dyslexia-friendly h1, .dyslexia-friendly h2, .dyslexia-friendly h3, .dyslexia-friendly h4, .dyslexia-friendly h5, .dyslexia-friendly h6 {
+    font-weight: 700 !important;
+    text-transform: lowercase !important;
+    margin-top: 1em !important;
+    margin-bottom: 0.5em !important;
+}
+.dyslexia-friendly h1 { font-size: 32px !important; }
+.dyslexia-friendly h2 { font-size: 28px !important; }
+.dyslexia-friendly h3 { font-size: 24px !important; }
+
+.dyslexia-friendly b, .dyslexia-friendly strong { font-weight: 700 !important; }
+.dyslexia-friendly em, .dyslexia-friendly i { font-style: normal !important; text-decoration: none !important; font-weight: 700 !important; }
+
+/* Box utility for emphasis */
+.dyslexia-friendly .dyslexia-box { border: 2px solid rgba(0,0,0,0.12) !important; padding: 0.6em !important; border-radius: 6px !important; background: rgba(0,0,0,0.02) !important; }

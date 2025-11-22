@@ -37,24 +37,44 @@ export function apply(options = {}) {
         `  font-style: normal;\n` +
         `  font-display: swap;\n` +
         `}`;
-    injectStyle(dyslexicFace, 'dyslexic-friendly-face');
+    injectStyle(dyslexicFace, 'dyslexia-friendly-face');
 
     // 3) Inject main dyslexia-friendly CSS (uses CSS variable fallbacks)
-    const css = `:root { --dyslexic-friendly-font-size: ${fontSizePx}px; }\n` +
-        `.dyslexic-friendly, .dyslexic-friendly * {\n` +
+    const css = `:root { --dyslexia-friendly-font-size: ${fontSizePx}px; }\n` +
+        `.dyslexia-friendly, .dyslexia-friendly * {\n` +
         `  font-family: 'OpenDyslexic', 'Lexend', Arial, 'Comic Sans MS', Verdana, Tahoma, 'Century Gothic', 'Trebuchet MS', sans-serif !important;\n` +
-        `  font-size: var(--dyslexic-friendly-font-size) !important;\n` +
-        `  line-height: 1.5 !important;\n` +
+        `  font-size: var(--dyslexia-friendly-font-size) !important;\n` +
+        `  line-height: 1.6 !important;\n` +
         `  text-align: left !important;\n` +
         `  text-transform: none !important;\n` +
-        `  letter-spacing: 0.2px !important;\n` +
-        `  word-spacing: 0.2px !important;\n` +
-        `}`;
+        `  letter-spacing: 0.5px !important;\n` +
+        `  word-spacing: 0.3px !important;\n` +
+        `  text-decoration: none !important;\n` +
+        `  font-style: normal !important;\n` +
+        `}\n` +
+        `/* Headings and emphasis */\n` +
+        `.dyslexia-friendly h1, .dyslexia-friendly h2, .dyslexia-friendly h3, .dyslexia-friendly h4, .dyslexia-friendly h5, .dyslexia-friendly h6 {\n` +
+        `  font-weight: 700 !important;\n` +
+        `  text-transform: lowercase !important;\n` +
+        `  margin-top: 1em !important;\n` +
+        `  margin-bottom: 0.5em !important;\n` +
+        `}\n` +
+        `.dyslexia-friendly h1 { font-size: calc(var(--dyslexia-friendly-font-size) * 2) !important; }\n` +
+        `.dyslexia-friendly h2 { font-size: calc(var(--dyslexia-friendly-font-size) * 1.75) !important; }\n` +
+        `.dyslexia-friendly h3 { font-size: calc(var(--dyslexia-friendly-font-size) * 1.5) !important; }\n` +
+        `\n` +
+        `/* Strong/bold emphasis */\n` +
+        `.dyslexia-friendly b, .dyslexia-friendly strong { font-weight: 700 !important; }\n` +
+        `/* Avoid italics/underline for emphasis: prefer bold */\n` +
+        `.dyslexia-friendly em, .dyslexia-friendly i { font-style: normal !important; text-decoration: none !important; font-weight: 700 !important; }\n` +
+        `\n` +
+        `/* Box utility for emphasis */\n` +
+        `.dyslexia-friendly .dyslexia-box { border: 2px solid rgba(0,0,0,0.12) !important; padding: 0.6em !important; border-radius: 6px !important; background: rgba(0,0,0,0.02) !important; }`;
 
-    injectStyle(css, 'dyslexic-friendly-style');
+    injectStyle(css, 'dyslexia-friendly-style');
 
     // 4) Add class to <html> to apply styles globally
-    document.documentElement.classList.add('dyslexic-friendly');
+    document.documentElement.classList.add('dyslexia-friendly');
 }
 
 export function remove() {

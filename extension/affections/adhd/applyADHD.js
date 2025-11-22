@@ -6,14 +6,14 @@ export function apply() {
         footer, nav { display: none !important; }
 
         a, a:visited {
-            color: #1565C0 !important;   /* albastru intens */
+            color: #1565C0 !important;
             font-weight: bold;
             text-decoration: underline !important;
-            background-color: unset !important; /* păstrează highlight-ul nativ la selectare */
+            background-color: unset !important;
         }
         a:hover, a:focus {
-            color: #0D47A1 !important;    /* albastru mai închis */
-            background-color: rgba(187, 222, 251, 0.3) !important; /* ușor highlight pe hover */
+            color: #0D47A1 !important;
+            background-color: rgba(187, 222, 251, 0.3) !important;
             transition: background-color 0.25s, color 0.25s;
         }
 
@@ -31,16 +31,31 @@ export function apply() {
 
         /* Table of Contents as table */
         #adhd-summary {
-            border: 1px solid unset;
-            padding: 12px;
+            border: 1px solid #ccc;
+            padding: 16px;
             margin-bottom: 24px;
             background: unset;
             font-family: sans-serif;
+            border-radius: 8px;
+            max-width: 600px;
         }
-        #adhd-summary h2 { margin-top: 0; font-size: 1.2em; }
+        #adhd-summary h2 { margin-top: 0; font-size: 1.4em; color: #1565C0; }
         #adhd-summary table { width: 100%; border-collapse: collapse; }
-        #adhd-summary td { padding: 4px 8px; border-bottom: 1px solid #ddd; }
+        #adhd-summary tr { border-bottom: 1px solid #ddd; transition: background 0.2s; }
+        #adhd-summary tr:hover { background: rgba(21, 101, 192, 0.05); }
+        #adhd-summary td {
+            padding: 6px 12px;
+            vertical-align: middle;
+            font-size: 0.95em;
+            color: unset;
+        }
+        /* Indent headers according to level */
+        #adhd-summary td[data-level="1"] { padding-left: 0px; font-weight: bold; }
+        #adhd-summary td[data-level="2"] { padding-left: 16px; font-weight: 600; }
+        #adhd-summary td[data-level="3"] { padding-left: 32px; font-weight: 500; }
+        #adhd-summary td[data-level="4"] { padding-left: 48px; font-weight: 500; font-style: italic; }
     `;
+
     document.head.appendChild(style);
 
     // --- Create Table of Contents ---
@@ -57,12 +72,20 @@ export function apply() {
     headers.forEach(h => {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        const level = parseInt(h.tagName.substring(1)) - 1;
-        cell.style.paddingLeft = `${(level - 1) * 16}px`;
-        cell.innerText = h.innerText;
+        const level = parseInt(h.tagName.substring(1));
+        cell.dataset.level = level;
+        
+        const text = h.innerText;
+        const splitLines = text.indexOf('.') > 0 ? text.split('. ') : [text];
+        cell.innerHTML = splitLines.map(line => `• ${line}`).join('<br>');
+        
         row.appendChild(cell);
         table.appendChild(row);
     });
+
+
+
+
 
     summary.appendChild(table);
     const firstElement = document.body.firstElementChild;

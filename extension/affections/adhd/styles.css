@@ -1,1 +1,8 @@
-/* Styles for ADHD module are injected via applyADHD.js for button simplification. */
+#adhd-summary td {
+    white-space: pre-wrap;      
+    line-height: 1.4em;
+}
+
+#adhd-summary td::before {
+    content: "• ";              
+}

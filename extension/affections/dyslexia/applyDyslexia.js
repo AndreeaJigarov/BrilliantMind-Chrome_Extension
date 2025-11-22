@@ -55,6 +55,32 @@ function disableReadingRuler() {
     _dyslexia_paragraphs = null;
 }
 
+document.addEventListener(
+    "keydown",
+    (e) => {
+        // If ruler disabled → do nothing
+        if (!_dyslexia_rulerEnabled) return;
+
+        // Ignore arrow keys while typing in inputs or textareas
+        if (e.target.tagName === "INPUT" ||
+            e.target.tagName === "TEXTAREA" ||
+            e.target.isContentEditable) return;
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            moveRuler(1);   // next paragraph
+        }
+
+        if (e.key === "ArrowUp") {
+            e.preventDefault();
+            moveRuler(-1);  // previous paragraph
+        }
+    },
+    true // IMPORTANT — capture mode
+);
+
+
+
 function moveRuler(delta) {
     if (!_dyslexia_rulerEnabled || !_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
     let idx = _dyslexia_currentParaIndex + delta;
@@ -171,7 +197,7 @@ function convertHeadingTextNodesToSentenceCaseIfNeeded(el) {
     }
 }
 
-// Returns true if element's bounding box overlaps an <img> or an element with a background-image
+// Returns true if element's bounding box overlaps an image or an element with a background-image
 function doesElementOverlapMedia(el) {
     try {
         const rect = el.getBoundingClientRect();
@@ -481,12 +507,12 @@ function createDyslexiaPrefsWidget() {
     const title = document.createElement('div');
     title.className = 'dyslexia-pref-title';
     title.textContent = 'Dyslexia prefs';
-    widget.appendChild(title);
+    //widget.appendChild(title);
 
     const desc = document.createElement('div');
     desc.className = 'dyslexia-pref-desc';
     desc.textContent = 'Background:';
-    widget.appendChild(desc);
+    //widget.appendChild(desc);
 
     const presets = [
         { id: 'offWhite', label: 'Off-White', color: '#F5F2EB' },
@@ -585,7 +611,7 @@ function createDyslexiaPrefsWidget() {
     });
 
     rulerSection.appendChild(document.createElement('br'));
-    widget.appendChild(rulerSection);
+    //widget.appendChild(rulerSection);
 
     const close = document.createElement('button');
     close.className = 'dyslexia-pref-close';
@@ -607,10 +633,18 @@ function createDyslexiaPrefsWidget() {
         tab.setAttribute('aria-expanded', closed ? 'false' : 'true');
     });
 
-    widget.appendChild(tab);
-    widget.appendChild(list);
-    widget.appendChild(customWrap);
-    widget.appendChild(close);
+    //widget.appendChild(tab);
+    //widget.appendChild(list);
+    //widget.appendChild(customWrap);
+    //widget.appendChild(close);
+    widget.appendChild(title);        // Titlu
+    widget.appendChild(desc);         // Background label
+    widget.appendChild(list);         // preset-uri
+    widget.appendChild(customWrap);   // input custom
+    widget.appendChild(rulerSection); // Reading ruler
+    widget.appendChild(close);        // Close
+    widget.appendChild(tab);          // Tab lateral
+
 
     const widgetCss = `#dyslexia-pref-widget { position: fixed; right: 12px; bottom: 12px; z-index: 2147483647; background: rgba(255,255,255,0.95); color: #111; border: 1px solid rgba(0,0,0,0.08); padding: 8px 12px 12px 12px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); font-family: sans-serif; font-size: 12px; width:220px; transition: transform 0.22s ease; }
 #dyslexia-pref-widget.closed { transform: translateX(180px); }

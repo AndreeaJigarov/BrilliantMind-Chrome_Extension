@@ -1,3 +1,67 @@
+// Compute a ruler color with contrast to background
+function getRulerColor(bg, custom, isDark) {
+    if (custom) return custom;
+    // bg: string (hex or rgb)
+    let base = bg;
+    if (!base) base = isDark ? '#222' : '#f5f2eb';
+    let delta = isDark ? 0.13 : -0.13;
+    let c = adjustColorLightness(base, delta);
+    // fallback
+    if (!c) c = isDark ? '#444' : '#e0e0d0';
+    return c;
+}
+
+// Highlight the current paragraph
+function showReadingRuler(index, color) {
+    if (!_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
+    if (_dyslexia_currentParaIndex >= 0 && _dyslexia_currentParaIndex < _dyslexia_paragraphs.length) {
+        _dyslexia_paragraphs[_dyslexia_currentParaIndex].classList.remove('dyslexia-ruler-active');
+        _dyslexia_paragraphs[_dyslexia_currentParaIndex].style.background = '';
+    }
+    _dyslexia_currentParaIndex = index;
+    const para = _dyslexia_paragraphs[index];
+    if (para) {
+        para.classList.add('dyslexia-ruler-active');
+        para.style.background = color;
+        para.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+}
+
+function clearReadingRuler() {
+    if (!_dyslexia_paragraphs) return;
+    _dyslexia_paragraphs.forEach(p => {
+        p.classList.remove('dyslexia-ruler-active');
+        p.style.background = '';
+    });
+    _dyslexia_currentParaIndex = -1;
+}
+
+function enableReadingRuler(customColor) {
+    _dyslexia_rulerEnabled = true;
+    // Find all visible paragraphs in the main content
+    _dyslexia_paragraphs = Array.from(document.querySelectorAll('.dyslexia-friendly p, .dyslexia-friendly li, .dyslexia-friendly blockquote'))
+        .filter(p => elementHasVisibleText(p));
+    if (!_dyslexia_paragraphs.length) return;
+    // Use current background as base
+    let bg = window.getComputedStyle(document.body).backgroundColor;
+    let color = getRulerColor(bg, customColor, _dyslexia_pageIsDark);
+    _dyslexia_rulerColor = color;
+    showReadingRuler(0, color);
+}
+
+function disableReadingRuler() {
+    _dyslexia_rulerEnabled = false;
+    clearReadingRuler();
+    _dyslexia_paragraphs = null;
+}
+
+function moveRuler(delta) {
+    if (!_dyslexia_rulerEnabled || !_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
+    let idx = _dyslexia_currentParaIndex + delta;
+    if (idx < 0) idx = 0;
+    if (idx >= _dyslexia_paragraphs.length) idx = _dyslexia_paragraphs.length - 1;
+    showReadingRuler(idx, _dyslexia_rulerColor);
+}
 // Clean, single-file implementation for dyslexia-friendly presentation
 function injectLink(href) {
     const existing = document.querySelector(`link[href="${href}"]`);
@@ -241,6 +305,12 @@ function processAllHeadings(root = document) {
 let _dyslexia_originalBodyStyles = null;
 let _dyslexia_prefsWidget = null;
 let _dyslexia_pageIsDark = false;
+// Reading ruler state
+let _dyslexia_rulerEl = null;
+let _dyslexia_paragraphs = null;
+let _dyslexia_currentParaIndex = -1;
+let _dyslexia_rulerEnabled = false;
+let _dyslexia_rulerColor = null;
 
 // Safe storage wrapper to avoid crashes when chrome.storage isn't available
 const storage = {
@@ -452,6 +522,71 @@ function createDyslexiaPrefsWidget() {
     });
     customWrap.appendChild(customInput);
 
+    // Reading ruler controls
+    const rulerSection = document.createElement('div');
+    rulerSection.className = 'dyslexia-pref-ruler';
+    const rulerLabel = document.createElement('label');
+    rulerLabel.textContent = 'Reading ruler:';
+    rulerLabel.style.display = 'block';
+    rulerLabel.style.marginTop = '8px';
+    rulerSection.appendChild(rulerLabel);
+
+    const rulerToggle = document.createElement('input');
+    rulerToggle.type = 'checkbox';
+    rulerToggle.title = 'Enable reading ruler';
+    rulerToggle.style.marginRight = '6px';
+    rulerSection.appendChild(rulerToggle);
+
+    const rulerPrev = document.createElement('button');
+    rulerPrev.textContent = '↑';
+    rulerPrev.title = 'Previous paragraph';
+    rulerPrev.style.marginRight = '2px';
+    rulerPrev.disabled = true;
+    rulerSection.appendChild(rulerPrev);
+
+    const rulerNext = document.createElement('button');
+    rulerNext.textContent = '↓';
+    rulerNext.title = 'Next paragraph';
+    rulerNext.disabled = true;
+    rulerSection.appendChild(rulerNext);
+
+    const rulerColorInput = document.createElement('input');
+    rulerColorInput.type = 'color';
+    rulerColorInput.title = 'Custom ruler color';
+    rulerColorInput.style.marginLeft = '8px';
+    rulerSection.appendChild(rulerColorInput);
+
+    let lastCustomRulerColor = null;
+
+    function updateRulerUI() {
+        rulerPrev.disabled = !_dyslexia_rulerEnabled || !_dyslexia_paragraphs || _dyslexia_currentParaIndex <= 0;
+        rulerNext.disabled = !_dyslexia_rulerEnabled || !_dyslexia_paragraphs || _dyslexia_currentParaIndex >= (_dyslexia_paragraphs ? _dyslexia_paragraphs.length - 1 : 0);
+        rulerColorInput.disabled = !_dyslexia_rulerEnabled;
+    }
+
+    rulerToggle.addEventListener('change', () => {
+        if (rulerToggle.checked) {
+            enableReadingRuler(lastCustomRulerColor);
+            try { storage.set({ dyslexiaPrefs: { rulerEnabled: true, rulerColor: lastCustomRulerColor } }); } catch (e) {}
+        } else {
+            disableReadingRuler();
+            try { storage.set({ dyslexiaPrefs: { rulerEnabled: false } }); } catch (e) {}
+        }
+        updateRulerUI();
+    });
+    rulerPrev.addEventListener('click', () => { moveRuler(-1); updateRulerUI(); });
+    rulerNext.addEventListener('click', () => { moveRuler(1); updateRulerUI(); });
+    rulerColorInput.addEventListener('input', (e) => {
+        lastCustomRulerColor = e.target.value;
+        if (_dyslexia_rulerEnabled) {
+            enableReadingRuler(lastCustomRulerColor);
+            try { storage.set({ dyslexiaPrefs: { rulerColor: lastCustomRulerColor } }); } catch (e) {}
+        }
+    });
+
+    rulerSection.appendChild(document.createElement('br'));
+    widget.appendChild(rulerSection);
+
     const close = document.createElement('button');
     close.className = 'dyslexia-pref-close';
     close.textContent = '×';
@@ -495,6 +630,12 @@ function createDyslexiaPrefsWidget() {
     try {
         storage.get(['dyslexiaPrefs'], (res = {}) => {
             const stored = (res && res.dyslexiaPrefs) || {};
+            // Always load ruler prefs, even if dark mode disables auto background
+            if (stored.rulerEnabled) {
+                rulerToggle.checked = true;
+                lastCustomRulerColor = stored.rulerColor || null;
+                enableReadingRuler(lastCustomRulerColor);
+            }
             // If we detected the page is dark, avoid auto-applying stored backgrounds
             // to prevent overwriting a site's dark theme. User can still manually apply via the widget.
             if (_dyslexia_pageIsDark) return;
@@ -528,6 +669,7 @@ export function apply(options = {}) {
 
     // Main CSS
     const css = `:root{ --dyslexia-friendly-font-size: ${fontSizePx}px; }
+.dyslexia-ruler-active { transition: background 0.18s; outline: 2px solid #b8c4b6 !important; position: relative; z-index: 2; }
 .dyslexia-friendly, .dyslexia-friendly * { font-family: 'OpenDyslexic', 'Lexend', Arial, 'Comic Sans MS', Verdana, Tahoma, 'Century Gothic', 'Trebuchet MS', sans-serif !important; font-size: var(--dyslexia-friendly-font-size) !important; line-height:1.6 !important; text-align:left !important; text-transform:none !important; letter-spacing:0.5px !important; word-spacing:0.3px !important; text-shadow:none !important; }
 .dyslexia-friendly h1{ font-weight:700 !important; font-size: calc(var(--dyslexia-friendly-font-size) * 2) !important; }
 .dyslexia-friendly h2{ font-weight:700 !important; font-size: calc(var(--dyslexia-friendly-font-size) * 1.75) !important; }

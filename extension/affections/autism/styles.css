@@ -238,3 +238,39 @@
    or a network-level approach (declarativeNetRequest) configured in the
    extension manifest. */
 
+/* Paragraph summary overlay used by autism mode when enabled.
+   The box is slightly opaque, with generous spacing and line-height
+   for readability. It is inserted into each paragraph as an absolutely
+   positioned overlay that blends with the muted color scheme. */
+.autism-paragraph-summaries-enabled .autism-paragraph-summary-box {
+	/* Fill the paragraph area entirely */
+	position: absolute;
+	inset: 0; /* top:0; right:0; bottom:0; left:0 */
+	background: #ffffff; /* fully opaque */
+	color: #111;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+	border: 1px solid rgba(0,0,0,0.06);
+	font-size: 20px !important;
+	line-height: 1.9 !important;
+	letter-spacing: 0.2px !important;
+	display: flex;
+	align-items: center; /* vertically center the summary text */
+	z-index: 9999 !important;
+	overflow: auto;
+}
+
+/* When color-reduction is active, slightly adjust the overlay to match tone */
+.autism-color-reduced .autism-paragraph-summary-box {
+	background: #f5f5f7; /* fully opaque, matches muted tone */
+}
+
+/* Reduce font-size for very narrow viewports while keeping spacing */
+@media (max-width: 420px) {
+	.autism-paragraph-summaries-enabled .autism-paragraph-summary-box {
+		font-size: 18px !important;
+		padding: 14px !important;
+	}
+}
+

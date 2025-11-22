@@ -28,7 +28,103 @@ export function apply() {
 			document.documentElement.classList.toggle('autism-vertical-layout');
 		}
 
-		// ad-blocking removed: autism mode will no longer attempt DOM-based ad removal.
+		// Paragraph summarization: generate a short, spaced summary for each paragraph
+		// and overlay it on top of the paragraph. This feature is opt-in and exposed
+		// via the `window.__autismAccessibility` API.
+
+		function _splitSentences(text) {
+			if (!text) return [];
+			// crude sentence splitter: keep punctuation with sentences
+			const m = text.match(/[^.!?\n]+[.!?\n]*/g);
+			if (!m) return [text.trim()];
+			return m.map(s => s.trim()).filter(Boolean);
+		}
+
+		function _firstWords(text, count) {
+			return text.split(/\s+/).slice(0, count).join(' ').trim();
+		}
+
+		function createSummaryForText(text) {
+			const sentences = _splitSentences(text);
+			if (sentences.length > 0) {
+				const first = sentences[0];
+				if (first.length >= 40 || sentences.length === 1) {
+					return first.length > 220 ? _firstWords(first, 30) + '…' : first;
+				}
+				// otherwise, combine first two sentences if short
+				if (sentences.length > 1) {
+					const combined = (sentences[0] + ' ' + sentences[1]).trim();
+					return combined.length > 220 ? _firstWords(combined, 30) + '…' : combined;
+				}
+			}
+			// fallback: first ~25 words
+			return _firstWords(text, 25) + (text.split(/\s+/).length > 25 ? '…' : '');
+		}
+
+		function createParagraphSummaries() {
+			const containerSelector = 'main, article, #content, .article';
+			let paragraphs = [];
+			const containers = document.querySelectorAll(containerSelector);
+			if (containers && containers.length) {
+				containers.forEach(c => paragraphs.push(...Array.from(c.querySelectorAll('p'))));
+			} else {
+				paragraphs = Array.from(document.querySelectorAll('p')).slice(0, 200);
+			}
+
+			paragraphs.forEach(p => {
+				if (!(p instanceof HTMLElement)) return;
+				if (p.closest && p.closest('header, footer, nav, aside, form')) return;
+				const text = (p.textContent || '').trim();
+				if (!text || text.length < 40) return; // skip short lines
+				if (p.dataset.autismSummary === '1') return;
+
+				const summaryText = createSummaryForText(text);
+				if (!summaryText) return;
+
+				// ensure the paragraph is a positioning context
+				const prevPosition = p.style.position || '';
+				if (getComputedStyle(p).position === 'static') {
+					p.style.position = 'relative';
+					p.dataset.autismOriginalPosition = prevPosition;
+				}
+
+				const box = document.createElement('div');
+				box.className = 'autism-paragraph-summary-box';
+				box.setAttribute('role', 'note');
+				box.textContent = summaryText;
+				// mark as generated
+				p.dataset.autismSummary = '1';
+				p.insertBefore(box, p.firstChild);
+			});
+		}
+
+		function removeParagraphSummaries() {
+			const boxes = Array.from(document.querySelectorAll('.autism-paragraph-summary-box'));
+			boxes.forEach(box => {
+				const p = box.closest('p');
+				if (!p) { box.remove(); return; }
+				box.remove();
+				if (p.dataset.autismOriginalPosition !== undefined) {
+					p.style.position = p.dataset.autismOriginalPosition || '';
+					delete p.dataset.autismOriginalPosition;
+				}
+				delete p.dataset.autismSummary;
+			});
+		}
+
+		function enableParagraphSummaries() {
+			document.documentElement.classList.add('autism-paragraph-summaries-enabled');
+			createParagraphSummaries();
+		}
+
+		function disableParagraphSummaries() {
+			document.documentElement.classList.remove('autism-paragraph-summaries-enabled');
+			removeParagraphSummaries();
+		}
+
+		function toggleParagraphSummaries() {
+			if (document.documentElement.classList.contains('autism-paragraph-summaries-enabled')) disableParagraphSummaries(); else enableParagraphSummaries();
+		}
 
 	function enable() {
 		if (document.getElementById(styleId)) return;
@@ -42,7 +138,8 @@ export function apply() {
 		// Apply hide-extras and vertical layout by default
 		enableHideExtras();
 		enableVerticalLayout();
-		// No DOM-based ad blocking in autism view (conservative approach).
+		// Enable paragraph summaries by default for autism mode (opt-out via API).
+		enableParagraphSummaries();
 	}
 
 	function disable() {
@@ -52,7 +149,8 @@ export function apply() {
 		// Revert extras/layout when disabling
 		disableHideExtras();
 		disableVerticalLayout();
-		// Nothing to stop: no DOM-based ad blocking active.
+		// Disable paragraph summaries when autism mode is turned off
+		disableParagraphSummaries();
 	}
 
 	function toggle() {
@@ -78,7 +176,11 @@ export function apply() {
 		window.__autismAccessibility.toggleVerticalLayout = toggleVerticalLayout;
 		window.__autismAccessibility.verticalLayoutEnabled = () => document.documentElement.classList.contains('autism-vertical-layout');
 
-		// No ad controls exposed for autism module.
+		// Paragraph summaries API
+		window.__autismAccessibility.enableParagraphSummaries = enableParagraphSummaries;
+		window.__autismAccessibility.disableParagraphSummaries = disableParagraphSummaries;
+		window.__autismAccessibility.toggleParagraphSummaries = toggleParagraphSummaries;
+		window.__autismAccessibility.paragraphSummariesEnabled = () => document.documentElement.classList.contains('autism-paragraph-summaries-enabled');
 	} catch (e) {
 		// ignore if pages forbid assigning to window
 	}

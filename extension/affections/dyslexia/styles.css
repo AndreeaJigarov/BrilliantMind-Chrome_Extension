@@ -10,8 +10,13 @@
     color: #222 !important;
 }
 
+.dyslexia-mode * {
+    display: block !important;
+}
+
 /* core text formatting */
 .dyslexia-mode * {
+    
     font-family: Arial, Verdana, Tahoma, "Comic Sans MS",
                  Century Gothic, Trebuchet MS, sans-serif !important;
 
@@ -43,6 +48,13 @@
 /* avoid underlines*/
 .dyslexia-mode a {
     text-decoration: none !important;
+    font-weight: 600 !important;
+}
+
+.dyslexia-mode a {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 4px !important;
     font-weight: 600 !important;
 }
 

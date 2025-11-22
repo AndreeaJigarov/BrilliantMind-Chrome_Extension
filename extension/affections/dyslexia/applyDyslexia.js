@@ -62,14 +62,75 @@ function convertHeadingTextNodesToSentenceCaseIfNeeded(el) {
     while (walker.nextNode()) {
         textNodes.push(walker.currentNode);
     }
-    textNodes.forEach(node => {
-        const v = node.nodeValue.trim();
-        if (!v) return;
-        if (isMostlyAllCaps(v)) {
-            const converted = toSentenceCasePreservingAcronyms(v);
-            node.nodeValue = converted;
+    // aggregate visible text
+    const visibleText = textNodes.map(n => n.nodeValue).join(' ').trim();
+    if (!visibleText) return;
+    if (!isMostlyAllCaps(visibleText)) return;
+
+    const converted = toSentenceCasePreservingAcronyms(visibleText);
+
+    // If the heading overlaps an image or element with a background-image, avoid replacing in-place
+    // (that can place readable text on top of pictures). Instead create a small alternate caption
+    // below the heading and visually-hide the original text to preserve layout.
+    if (doesElementOverlapMedia(el)) {
+        try {
+            // store original text for potential restore
+            if (!el.hasAttribute('data-dyslexia-original-text')) el.setAttribute('data-dyslexia-original-text', visibleText);
+            // visually hide original text but keep layout space
+            el.style.color = 'transparent';
+            el.style.textShadow = 'none';
+            el.style.webkitTextFillColor = 'transparent';
+
+            // create alternate accessible heading below
+            const alt = document.createElement('div');
+            alt.className = 'dyslexia-alt-heading';
+            alt.setAttribute('aria-hidden', 'false');
+            alt.textContent = converted;
+            el.parentNode && el.parentNode.insertBefore(alt, el.nextSibling);
+        } catch (e) {
+            // fallback to in-place replacement if DOM insertion fails
+            textNodes.forEach(node => { if (node.nodeValue.trim()) node.nodeValue = converted; });
         }
-    });
+    } else {
+        // safe to replace inline text nodes
+        // Replace the first text node content and clear others
+        let placed = false;
+        textNodes.forEach(node => {
+            if (!node.nodeValue.trim()) return;
+            if (!placed) {
+                node.nodeValue = converted;
+                placed = true;
+            } else {
+                node.nodeValue = '';
+            }
+        });
+    }
+}
+
+// Returns true if element's bounding box overlaps an <img> or an element with a background-image
+function doesElementOverlapMedia(el) {
+    try {
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return false;
+        const points = [
+            { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+            { x: rect.left + 2, y: rect.top + 2 },
+            { x: rect.right - 2, y: rect.top + 2 },
+            { x: rect.left + 2, y: rect.bottom - 2 },
+            { x: rect.right - 2, y: rect.bottom - 2 }
+        ];
+        for (let p of points) {
+            if (p.x < 0 || p.y < 0 || p.x > (window.innerWidth || document.documentElement.clientWidth) || p.y > (window.innerHeight || document.documentElement.clientHeight)) continue;
+            const elems = document.elementsFromPoint(p.x, p.y);
+            for (let node of elems) {
+                if (el.contains(node)) continue; // ignore self or children
+                if (node.tagName && node.tagName.toLowerCase() === 'img') return true;
+                const comp = window.getComputedStyle(node);
+                if (comp && comp.backgroundImage && comp.backgroundImage !== 'none') return true;
+            }
+        }
+    } catch (e) {}
+    return false;
 }
 
 function processAllHeadings(root = document) {
@@ -314,6 +375,8 @@ export function apply(options = {}) {
   caret-color: var(--dyslexia-fg, auto) !important;
   border-color: rgba(0,0,0,0.12) !important;
 }
+/* Alternate heading used when the original overlaps images/backgrounds */
+.dyslexia-alt-heading { display:block !important; margin-top:0.25rem !important; font-size:0.85em !important; line-height:1.3 !important; color: var(--dyslexia-fg, #111) !important; }
 `;
 
     injectStyle(css, 'dyslexia-friendly-style');
@@ -373,6 +436,22 @@ export function apply(options = {}) {
 
 export function remove() {
     document.documentElement.classList.remove('dyslexia-friendly');
+    // restore any headings we altered to avoid overlays and remove alternates
+    try {
+        document.querySelectorAll('.dyslexia-alt-heading').forEach(e => e.remove());
+        document.querySelectorAll('[data-dyslexia-original-text]').forEach(h => {
+            try {
+                const orig = h.getAttribute('data-dyslexia-original-text');
+                if (orig != null) {
+                    h.textContent = orig;
+                    h.removeAttribute('data-dyslexia-original-text');
+                    h.style.color = '';
+                    h.style.textShadow = '';
+                    h.style.webkitTextFillColor = '';
+                }
+            } catch (er) {}
+        });
+    } catch (e) {}
     const ids = ['dyslexia-friendly-style', 'dyslexia-friendly-face', 'dyslexia-friendly-links', 'dyslexia-pref-widget-style'];
     ids.forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
 

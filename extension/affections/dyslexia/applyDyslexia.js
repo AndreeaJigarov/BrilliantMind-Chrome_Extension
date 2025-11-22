@@ -88,6 +88,9 @@ function applyBackgroundChoice(name, color) {
         _dyslexia_originalBodyStyles = _dyslexia_originalBodyStyles || { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
         body.style.backgroundColor = color;
         body.style.color = body.style.color || '#111111';
+        // expose CSS variables so inputs and other controls can inherit
+        try { document.documentElement.style.setProperty('--dyslexia-bg', color); } catch (e) {}
+        try { document.documentElement.style.setProperty('--dyslexia-fg', body.style.color || '#111111'); } catch (e) {}
     } catch (e) {
         console.warn('applyBackgroundChoice failed', e);
     }
@@ -149,16 +152,31 @@ function createDyslexiaPrefsWidget() {
     close.title = 'Close';
     close.addEventListener('click', () => { widget.style.display = 'none'; });
 
+    // Add a small tab to open/close the widget from the side
+    const tab = document.createElement('button');
+    tab.className = 'dyslexia-pref-tab';
+    tab.setAttribute('aria-expanded', 'true');
+    tab.title = 'Open dyslexia prefs';
+    tab.textContent = '\u25C0'; // left-pointing triangle
+    tab.addEventListener('click', () => {
+        const closed = widget.classList.toggle('closed');
+        tab.style.transform = closed ? 'rotate(180deg)' : 'rotate(0deg)';
+        tab.setAttribute('aria-expanded', closed ? 'false' : 'true');
+    });
+
+    widget.appendChild(tab);
     widget.appendChild(list);
     widget.appendChild(customWrap);
     widget.appendChild(close);
 
-    const widgetCss = `#dyslexia-pref-widget { position: fixed; right: 12px; bottom: 12px; z-index: 2147483647; background: rgba(255,255,255,0.95); color: #111; border: 1px solid rgba(0,0,0,0.08); padding: 8px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); font-family: sans-serif; font-size: 12px; }
+    const widgetCss = `#dyslexia-pref-widget { position: fixed; right: 12px; bottom: 12px; z-index: 2147483647; background: rgba(255,255,255,0.95); color: #111; border: 1px solid rgba(0,0,0,0.08); padding: 8px 12px 12px 12px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); font-family: sans-serif; font-size: 12px; width:220px; transition: transform 0.22s ease; }
+#dyslexia-pref-widget.closed { transform: translateX(180px); }
 #dyslexia-pref-widget .dyslexia-pref-title { font-weight: 700; margin-bottom: 6px; }
 #dyslexia-pref-widget .dyslexia-pref-list { display:flex; gap:6px; margin-bottom:6px; }
 #dyslexia-pref-widget .dyslexia-pref-swatch { width:28px; height:20px; border-radius:4px; border:1px solid rgba(0,0,0,0.06); cursor:pointer; }
 #dyslexia-pref-widget .dyslexia-pref-custom { margin-bottom:6px; }
-#dyslexia-pref-widget .dyslexia-pref-close { position: absolute; right:6px; top:4px; background:transparent; border:none; font-size:14px; cursor:pointer; }
+#dyslexia-pref-widget .dyslexia-pref-close { position: absolute; right:8px; top:6px; background:transparent; border:none; font-size:14px; cursor:pointer; }
+#dyslexia-pref-widget .dyslexia-pref-tab { position:absolute; left:-28px; top:8px; width:24px; height:24px; border-radius:4px; border:1px solid rgba(0,0,0,0.08); background:rgba(255,255,255,0.95); cursor:pointer; display:flex; align-items:center; justify-content:center; }
 `;
 
     injectStyle(widgetCss, 'dyslexia-pref-widget-style');
@@ -206,6 +224,15 @@ export function apply(options = {}) {
 .dyslexia-friendly ul, .dyslexia-friendly ol { list-style-position:outside !important; padding-left:1.25rem !important; }
 .dyslexia-friendly li { margin-bottom:0.6rem !important; }
 .dyslexia-friendly [role="column"], .dyslexia-friendly .column, .dyslexia-friendly .col { min-width:200px !important; }
+/* Ensure form controls and editable areas use dyslexia font and follow chosen background */
+.dyslexia-friendly input, .dyslexia-friendly textarea, .dyslexia-friendly select, .dyslexia-friendly button, .dyslexia-friendly [contenteditable] {
+  font-family: 'OpenDyslexic', 'Lexend', Arial, sans-serif !important;
+  font-size: inherit !important;
+  color: var(--dyslexia-fg, inherit) !important;
+  background-color: var(--dyslexia-bg, transparent) !important;
+  caret-color: var(--dyslexia-fg, auto) !important;
+  border-color: rgba(0,0,0,0.12) !important;
+}
 `;
 
     injectStyle(css, 'dyslexia-friendly-style');

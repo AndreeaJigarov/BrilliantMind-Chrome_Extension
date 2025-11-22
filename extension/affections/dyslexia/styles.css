@@ -7,7 +7,7 @@
      - Default font size: 12-14 pt (approx. 16-19px). The script uses 16px by default.
 */
 
-/* Utility class applied to the page when dyslexia mode is enabled */
+
 .dyslexia-friendly, .dyslexia-friendly * {
     font-family: 'OpenDyslexic', 'Lexend', Arial, 'Comic Sans MS', Verdana, Tahoma, 'Century Gothic', 'Trebuchet MS', sans-serif !important;
     font-size: 16px !important;
@@ -20,7 +20,7 @@
     font-style: normal !important;
 }
 
-/* Small helper to increase font size if users prefer larger text */
+/*small helper to increase font size if users prefer larger text */
 .dyslexia-friendly--large, .dyslexia-friendly--large * {
     font-size: 19px !important;
 }
@@ -41,3 +41,24 @@
 
 /* Box utility for emphasis */
 .dyslexia-friendly .dyslexia-box { border: 2px solid rgba(0,0,0,0.12) !important; padding: 0.6em !important; border-radius: 6px !important; background: rgba(0,0,0,0.02) !important; }
+
+/* Layout / vertical rhythm and readability */
+.dyslexia-friendly p, .dyslexia-friendly li, .dyslexia-friendly blockquote, .dyslexia-friendly pre {
+    max-width: 60ch !important;
+    margin-top: 0 !important;
+    margin-bottom: 1rem !important;
+    line-height: 1.6 !important;
+    text-align: left !important;
+}
+.dyslexia-friendly ul, .dyslexia-friendly ol {
+    list-style-position: outside !important;
+    padding-left: 1.25rem !important;
+}
+.dyslexia-friendly li {
+    margin-bottom: 0.6rem !important;
+}
+
+/* Gentle avoidance of extremely narrow columns: allow column-like elements to keep readable widths when possible */
+.dyslexia-friendly [role="column"], .dyslexia-friendly .column, .dyslexia-friendly .col {
+    min-width: 200px !important;
+}

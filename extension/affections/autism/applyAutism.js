@@ -76,50 +76,70 @@ export function apply() {
 				if (p.closest && p.closest('header, footer, nav, aside, form')) return;
 				const text = (p.textContent || '').trim();
 				if (!text || text.length < 40) return; // skip short lines
-				if (p.dataset.autismSummary === '1') return;
 
-				const summaryText = createSummaryForText(text);
-				if (!summaryText) return;
-
-				// ensure the paragraph is a positioning context
-				const prevPosition = p.style.position || '';
-				if (getComputedStyle(p).position === 'static') {
-					p.style.position = 'relative';
-					p.dataset.autismOriginalPosition = prevPosition;
+				// attach a paragraph-level click handler (once) so users can re-open summaries
+				if (!p.dataset.autismSummaryHandler) {
+					p.dataset.autismSummaryHandler = '1';
+					p.addEventListener('click', function (ev) {
+						// Only recreate when summaries are enabled for the page
+						if (!document.documentElement.classList.contains('autism-paragraph-summaries-enabled')) return;
+						if (p.dataset.autismSummary === '1') return; // already showing
+						// avoid recreating when clicking interactive children
+						if (ev && ev.target && ev.target !== p) return;
+						const summaryText = createSummaryForText(text);
+						if (!summaryText) return;
+						createBoxForParagraph(p, summaryText);
+					});
 				}
 
-				const box = document.createElement('div');
-				box.className = 'autism-paragraph-summary-box';
-				box.setAttribute('role', 'note');
-				box.setAttribute('tabindex', '0');
-				box.setAttribute('title', 'Click or press Enter to reveal full paragraph');
-				box.textContent = summaryText;
-
-				// Allow users to dismiss the summary box to reveal the paragraph
-				box.addEventListener('click', function () {
-					try {
-						box.remove();
-						if (p.dataset.autismOriginalPosition !== undefined) {
-							p.style.position = p.dataset.autismOriginalPosition || '';
-							delete p.dataset.autismOriginalPosition;
-						}
-						delete p.dataset.autismSummary;
-					} catch (e) {
-						// ignore
-					}
-				});
-
-				// keyboard accessibility: Enter or Space to dismiss
-				box.addEventListener('keydown', function (ev) {
-					if (ev.key === 'Enter' || ev.key === ' ') {
-						ev.preventDefault();
-						this.click();
-					}
-				});
-				// mark as generated
-				p.dataset.autismSummary = '1';
-				p.insertBefore(box, p.firstChild);
+				if (p.dataset.autismSummary === '1') return;
+				const summaryText = createSummaryForText(text);
+				if (!summaryText) return;
+				createBoxForParagraph(p, summaryText);
 			});
+		}
+
+		function createBoxForParagraph(p, summaryText) {
+			// ensure the paragraph is a positioning context
+			const prevPosition = p.style.position || '';
+			if (getComputedStyle(p).position === 'static') {
+				p.style.position = 'relative';
+				p.dataset.autismOriginalPosition = prevPosition;
+			}
+
+			const box = document.createElement('div');
+			box.className = 'autism-paragraph-summary-box';
+			box.setAttribute('role', 'note');
+			box.setAttribute('tabindex', '0');
+			box.setAttribute('title', 'Click or press Enter to reveal full paragraph');
+			box.textContent = summaryText;
+
+			// Allow users to dismiss the summary box to reveal the paragraph
+			box.addEventListener('click', function (ev) {
+				if (ev && ev.stopPropagation) ev.stopPropagation();
+				try {
+					box.remove();
+					if (p.dataset.autismOriginalPosition !== undefined) {
+						p.style.position = p.dataset.autismOriginalPosition || '';
+						delete p.dataset.autismOriginalPosition;
+					}
+					delete p.dataset.autismSummary;
+				} catch (e) {
+					// ignore
+				}
+			});
+
+			// keyboard accessibility: Enter or Space to dismiss
+			box.addEventListener('keydown', function (ev) {
+				if (ev.key === 'Enter' || ev.key === ' ') {
+					ev.preventDefault();
+					this.click();
+				}
+			});
+
+			// mark as generated
+			p.dataset.autismSummary = '1';
+			p.insertBefore(box, p.firstChild);
 		}
 
 		function removeParagraphSummaries() {

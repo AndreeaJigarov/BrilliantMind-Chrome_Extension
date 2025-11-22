@@ -34,7 +34,7 @@ export function apply() {
             border: 1px solid #ccc;
             padding: 16px;
             margin-bottom: 24px;
-            background: #f9f9f9;
+            background: unset;
             font-family: sans-serif;
             border-radius: 8px;
             max-width: 600px;
@@ -47,7 +47,7 @@ export function apply() {
             padding: 6px 12px;
             vertical-align: middle;
             font-size: 0.95em;
-            color: #111;
+            color: unset;
         }
         /* Indent headers according to level */
         #adhd-summary td[data-level="1"] { padding-left: 0px; font-weight: bold; }

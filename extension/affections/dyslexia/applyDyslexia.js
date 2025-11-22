@@ -82,6 +82,24 @@ function processAllHeadings(root = document) {
 let _dyslexia_originalBodyStyles = null;
 let _dyslexia_prefsWidget = null;
 
+// Safe storage wrapper to avoid crashes when chrome.storage isn't available
+const storage = {
+    get: (keys, cb) => {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync && chrome.storage.sync.get) {
+            try { chrome.storage.sync.get(keys, cb); } catch (e) { setTimeout(() => cb({}), 0); }
+        } else {
+            setTimeout(() => cb({}), 0);
+        }
+    },
+    set: (obj, cb) => {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync && chrome.storage.sync.set) {
+            try { chrome.storage.sync.set(obj, cb || (() => {})); } catch (e) { if (cb) setTimeout(cb, 0); }
+        } else {
+            if (cb) setTimeout(cb, 0);
+        }
+    }
+};
+
 function applyBackgroundChoice(name, color) {
     try {
         const body = document.body;
@@ -128,8 +146,8 @@ function createDyslexiaPrefsWidget() {
         btn.setAttribute('data-bg', p.id);
         btn.style.background = p.color;
         btn.addEventListener('click', () => {
-            applyBackgroundChoice(p.id, p.color);
-            try { chrome.storage.sync.set({ dyslexiaPrefs: { bgName: p.id } }); } catch (e) {}
+        applyBackgroundChoice(p.id, p.color);
+        try { storage.set({ dyslexiaPrefs: { bgName: p.id } }); } catch (e) {}
         });
         list.appendChild(btn);
     });
@@ -142,7 +160,7 @@ function createDyslexiaPrefsWidget() {
     customInput.addEventListener('input', (e) => {
         const c = e.target.value;
         applyBackgroundChoice('custom', c);
-        try { chrome.storage.sync.set({ dyslexiaPrefs: { bgColor: c } }); } catch (err) {}
+        try { storage.set({ dyslexiaPrefs: { bgColor: c } }); } catch (err) {}
     });
     customWrap.appendChild(customInput);
 
@@ -185,10 +203,10 @@ function createDyslexiaPrefsWidget() {
     document.body.appendChild(widget);
     _dyslexia_prefsWidget = widget;
 
-    // Load stored pref
+    // Load stored pref (safe)
     try {
-        chrome.storage && chrome.storage.sync && chrome.storage.sync.get(['dyslexiaPrefs'], ({ dyslexiaPrefs } = {}) => {
-            const stored = dyslexiaPrefs || {};
+        storage.get(['dyslexiaPrefs'], (res = {}) => {
+            const stored = (res && res.dyslexiaPrefs) || {};
             const presetsMap = { cream: '#fffaf0', pastelBlue: '#f0f8ff', pastelGreen: '#f4fff4', pastelLavender: '#faf0ff' };
             if (stored.bgColor) applyBackgroundChoice('custom', stored.bgColor);
             else if (stored.bgName && presetsMap[stored.bgName]) applyBackgroundChoice(stored.bgName, presetsMap[stored.bgName]);
@@ -199,6 +217,10 @@ function createDyslexiaPrefsWidget() {
 }
 
 export function apply(options = {}) {
+    // Idempotent guard: avoid double-application when module is imported/executed multiple times
+    if (window.__DYSLEXIA_MODE_APPLIED && !options.force) return;
+    window.__DYSLEXIA_MODE_APPLIED = true;
+
     const fontSizePx = options.fontSizePx || 16;
 
     // Load fonts
@@ -300,6 +322,7 @@ export function remove() {
         if (_dyslexia_prefsWidget) { _dyslexia_prefsWidget.remove(); _dyslexia_prefsWidget = null; }
         else { const w = document.getElementById('dyslexia-pref-widget'); if (w) w.remove(); }
     } catch (e) {}
+    try { window.__DYSLEXIA_MODE_APPLIED = false; } catch (e) {}
 }
 
 export default { apply, remove };

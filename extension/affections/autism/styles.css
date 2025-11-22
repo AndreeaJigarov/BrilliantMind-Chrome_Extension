@@ -1,0 +1,70 @@
+/* Autism: reduce bright colors and strong visual contrasts
+	 - Applies a gentle desaturation and contrast reduction across the page
+	 - Keeps text color inheritance to preserve readability
+	 - Allows opt-out for images with `data-preserve-color="true"`
+*/
+
+.autism-color-reduced, .autism-color-reduced * {
+	transition: filter 220ms ease, background-color 220ms ease, color 220ms ease !important;
+}
+
+/* Global softening: desaturate and slightly reduce contrast/brightness */
+.autism-color-reduced html, .autism-color-reduced body {
+	filter: saturate(0.65) contrast(0.95) brightness(0.98);
+}
+
+/* Keep images and media slightly more controlled but readable */
+.autism-color-reduced img,
+.autism-color-reduced picture,
+.autism-color-reduced video,
+.autism-color-reduced svg {
+	filter: saturate(0.6) contrast(0.95) brightness(0.98);
+	/* Prevent heavy shadows from being visually jarring */
+	box-shadow: none !important;
+}
+
+/* Soften strong borders and shadows that create harsh contrast */
+.autism-color-reduced * {
+	box-shadow: none !important;
+	border-color: rgba(0,0,0,0.14) !important;
+}
+
+/* Provide a subtle wash over non-transparent backgrounds to mute extremes.
+	 Uses a pseudo-element so we don't permanently overwrite author colors. */
+.autism-color-reduced [style*="background"],
+.autism-color-reduced [style*="background-color"] {
+	position: relative;
+}
+.autism-color-reduced [style*="background" ]::after,
+.autism-color-reduced [style*="background-color"]::after {
+	content: "";
+	pointer-events: none;
+	position: absolute;
+	inset: 0;
+	background: rgba(255,255,255,0.06);
+	mix-blend-mode: lighten;
+}
+
+/* Utility class for extra muting */
+.autism-muted {
+	filter: saturate(0.5) contrast(0.9) brightness(0.95) !important;
+}
+
+/* Allow authors/pages to opt images out of desaturation */
+.autism-color-reduced img[data-preserve-color="true"] {
+	filter: none !important;
+}
+
+/* Ensure text color remains readable and inherited */
+.autism-color-reduced p,
+.autism-color-reduced span,
+.autism-color-reduced a,
+.autism-color-reduced h1,
+.autism-color-reduced h2,
+.autism-color-reduced h3,
+.autism-color-reduced h4,
+.autism-color-reduced h5,
+.autism-color-reduced h6 {
+	color: inherit !important;
+}
+

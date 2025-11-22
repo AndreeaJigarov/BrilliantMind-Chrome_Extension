@@ -29,7 +29,9 @@
         "affections/simplify/*.js",
         "affections/simplify/*.css",
         "affections/reader_mode/*.js",
-        "affections/reader_mode/*.css"
+        "affections/reader_mode/*.css",
+        "affections/autism/*.js",
+        "affections/autism/*.css"
 
 
 

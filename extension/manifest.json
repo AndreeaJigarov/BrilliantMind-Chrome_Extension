@@ -51,6 +51,8 @@
         "affections/simplify/*.css",
         "affections/reader_mode/*.js",
         "affections/reader_mode/*.css",
+        "affections/simplify/settings-popup.html",
+        "affections/simplify/settings-popup.js",
         "api/*.js"
       ],
       "matches": ["<all_urls>"]

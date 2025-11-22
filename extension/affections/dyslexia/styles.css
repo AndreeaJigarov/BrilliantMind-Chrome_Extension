@@ -1,97 +1,24 @@
+/* Dyslexia accessibility defaults.
+	 The runtime script `applyDyslexia.js` injects additional
+	 font-face rules and a class on the document element.
 
+	 - Preferred fonts: OpenDyslexic, Lexend
+	 - Fallbacks: Arial, Comic Sans, Verdana, Tahoma, Century Gothic, Trebuchet
+	 - Default font size: 12-14 pt (approx. 16-19px). The script uses 16px by default.
+*/
 
-:root {
-    --dyslexia-bg: #f6ebbb;        /* Soft cream default !! change later in preferences */
-    --dyslexia-font-size: 18px;   /* adjusted by user */
+/* Utility class applied to the page when dyslexia mode is enabled */
+.hermes-dyslexia, .hermes-dyslexia * {
+	font-family: 'OpenDyslexic', 'Lexend', Arial, 'Comic Sans MS', Verdana, Tahoma, 'Century Gothic', 'Trebuchet MS', sans-serif !important;
+	font-size: 16px !important;
+	line-height: 1.5 !important;
+	text-align: left !important;
+	text-transform: none !important;
+	letter-spacing: 0.2px !important;
+	word-spacing: 0.2px !important;
 }
 
-.dyslexia-mode {
-    background: var(--dyslexia-bg) !important;
-    color: #222 !important;
-}
-
-.dyslexia-mode * {
-    display: block !important;
-}
-
-/* core text formatting */
-.dyslexia-mode * {
-    
-    font-family: Arial, Verdana, Tahoma, "Comic Sans MS",
-                 Century Gothic, Trebuchet MS, sans-serif !important;
-
-    font-size: var(--dyslexia-font-size) !important;
-
-    line-height: 1.5 !important;
-    letter-spacing: 0.08em !important;
-    word-spacing: 0.2em !important;
-
-    text-align: left !important; /* ragged right edge */
-    text-transform: none !important; /* no BLOCK CAPS */
-
-    max-width: none !important;
-}
-
-/* avoid white backgrounds and harsh contrast */
-.dyslexia-mode body,
-.dyslexia-mode html {
-    background-color: var(--dyslexia-bg) !important;
-}
-
-/* remove italics:replace with bold */
-.dyslexia-mode em,
-.dyslexia-mode i {
-    font-style: normal !important;
-    font-weight: bold !important;
-}
-
-/* avoid underlines*/
-.dyslexia-mode a {
-    text-decoration: none !important;
-    font-weight: 600 !important;
-}
-
-.dyslexia-mode a {
-    text-decoration: underline !important;
-    text-decoration-thickness: 2px !important;
-    text-underline-offset: 4px !important;
-    font-weight: 600 !important;
-}
-
-/* headings*/
-.dyslexia-mode h1,
-.dyslexia-mode h2,
-.dyslexia-mode h3,
-.dyslexia-mode h4 {
-    font-weight: 700 !important;
-    margin-bottom: 0.4em !important;
-}
-
-/* emphasis boxes */
-.dyslexia-mode .info-box,
-.dyslexia-mode .highlight-box {
-    border: 2px solid #444 !important;
-    background: #fffbe6 !important;
-    padding: 10px !important;
-    border-radius: 8px !important;
-}
-
-/* paragraph spacing */
-.dyslexia-mode p {
-    margin-bottom: 1.1em !important;
-    max-width: 38em !important; /* ~68 characters */
-}
-
-/* lists: clearer structure */
-.dyslexia-mode ul,
-.dyslexia-mode ol {
-    margin-left: 2em !important;
-    margin-bottom: 1.2em !important;
-}
-
-/* prevent narrow newspaper-style columns */
-.dyslexia-mode [class*="col"],
-.dyslexia-mode .column,
-.dyslexia-mode .columns {
-    min-width: 300px !important;
+/* Small helper to increase font size if users prefer larger text */
+.hermes-dyslexia--large, .hermes-dyslexia--large * {
+	font-size: 19px !important;
 }

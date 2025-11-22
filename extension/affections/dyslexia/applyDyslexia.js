@@ -1,104 +1,69 @@
+function injectLink(href) {
+    const existing = document.querySelector(`link[href="${href}"]`);
+    if (existing) return existing;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+    return link;
+}
 
-
-export function apply() {
-    console.log("[DYSLEXIA] Activating enhanced dyslexia mode...");
-
-    if (document.readyState === "complete") {
-        runDyslexiaMode();
-    } else {
-        window.addEventListener("load", runDyslexiaMode);
+function injectStyle(css, id) {
+    if (id) {
+        const existing = document.getElementById(id);
+        if (existing) return existing;
     }
-}
-
-function runDyslexiaMode() {
-    console.log("[DYSLEXIA] Cleaning layout for accessibility...");
-
-    document.documentElement.classList.add("dyslexia-mode");
-
-    applyUserPreferences();
-    removeDistractingElements();
-    stripInlineStyles();
-    flattenColumns();
-    unblockScrolling();
-    disableAnimations();
-    injectDyslexiaCSS();
-}
-
-/*user preferences*/
-function applyUserPreferences() {
-    chrome.storage.sync.get(
-        ["dyslexia_background", "dyslexia_fontsize"],
-        ({ dyslexia_background, dyslexia_fontsize }) => {
-
-            if (dyslexia_background) {
-                document.documentElement.style.setProperty("--dyslexia-bg", dyslexia_background);
-            }
-
-            if (dyslexia_fontsize) {
-                document.documentElement.style.setProperty("--dyslexia-font-size", dyslexia_fontsize + "px");
-            }
-        }
-    );
-}
-
-//remove distracting elements
-function removeDistractingElements() {
-    const toRemove = [
-        "nav", "header", "footer", "aside",
-        ".sidebar", ".ad", ".ads", ".advertisement",
-        "[role='banner']", "[role='complementary']",
-        ".cookie-banner", ".popup", ".modal", ".overlay",
-        ".sticky", ".fixed"
-    ];
-
-    toRemove.forEach(sel => {
-        document.querySelectorAll(sel).forEach(e => e.remove());
-    });
-}
-
-//remove inline styles that break readability
-function stripInlineStyles() {
-    document.querySelectorAll("*").forEach(el => {
-        el.removeAttribute("style");
-    });
-}
-
-//flatten narrow columns
-function flattenColumns() {
-    document.querySelectorAll("[class*='col'], .column, .columns").forEach(el => {
-        el.style.minWidth = "600px";
-        el.style.width = "100%";
-    });
-}
-
-//fix sites that freeze scrolling
-function unblockScrolling() {
-    document.body.style.overflow = "auto";
-    document.documentElement.style.overflow = "auto";
-}
-
-//disable animations and parallax
-function disableAnimations() {
-    const css = `
-        * {
-            animation: none !important;
-            transition: none !important;
-            scroll-behavior: auto !important;
-        }
-    `;
-
-    const style = document.createElement("style");
+    const style = document.createElement('style');
+    if (id) style.id = id;
     style.textContent = css;
     document.head.appendChild(style);
+    return style;
 }
 
-//inject dyslexia CSS
-function injectDyslexiaCSS() {
-    fetch(chrome.runtime.getURL("affections/dyslexia/styles.css"))
-        .then(r => r.text())
-        .then(css => {
-            const style = document.createElement("style");
-            style.textContent = css;
-            document.head.appendChild(style);
-        });
+export function apply(options = {}) {
+    // options: { fontSizePx, enable }
+    const fontSizePx = options.fontSizePx || 16; // default ~12pt
+
+    // 1) Try to load Lexend from Google Fonts (widely available)
+    injectLink('https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap');
+
+    // 2) Add OpenDyslexic @font-face as optional fallback (served from jsDelivr CDN).
+    // If the CDN is unavailable the browser will fall back to Lexend or system fonts.
+    const dyslexicFace = `@font-face {\n` +
+        `  font-family: 'OpenDyslexic';\n` +
+        `  src: local('OpenDyslexic'), local('OpenDyslexic3-Regular'), \n` +
+        `       url('https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic/OpenDyslexic3-Regular.woff2') format('woff2');\n` +
+        `  font-weight: 400;\n` +
+        `  font-style: normal;\n` +
+        `  font-display: swap;\n` +
+        `}`;
+    injectStyle(dyslexicFace, 'dyslexic-friendly-face');
+
+    // 3) Inject main dyslexia-friendly CSS (uses CSS variable fallbacks)
+    const css = `:root { --dyslexic-friendly-font-size: ${fontSizePx}px; }\n` +
+        `.dyslexic-friendly, .dyslexic-friendly * {\n` +
+        `  font-family: 'OpenDyslexic', 'Lexend', Arial, 'Comic Sans MS', Verdana, Tahoma, 'Century Gothic', 'Trebuchet MS', sans-serif !important;\n` +
+        `  font-size: var(--dyslexic-friendly-font-size) !important;\n` +
+        `  line-height: 1.5 !important;\n` +
+        `  text-align: left !important;\n` +
+        `  text-transform: none !important;\n` +
+        `  letter-spacing: 0.2px !important;\n` +
+        `  word-spacing: 0.2px !important;\n` +
+        `}`;
+
+    injectStyle(css, 'dyslexic-friendly-style');
+
+    // 4) Add class to <html> to apply styles globally
+    document.documentElement.classList.add('dyslexic-friendly');
 }
+
+export function remove() {
+    document.documentElement.classList.remove('dyslexic-friendly');
+    const ids = ['dyslexic-friendly-style', 'dyslexic-friendly-face'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
+}
+
+export default { apply, remove };

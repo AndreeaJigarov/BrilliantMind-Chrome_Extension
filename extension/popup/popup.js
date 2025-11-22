@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-    const modules = ["dyslexia", "adhd", "color_blindness", "epilepsy", "simplify", "reader_mode"];
+    const modules = ["dyslexia", "adhd", "autism", "color_blindness", "epilepsy", "simplify", "reader_mode"];
     const checkboxes = Object.fromEntries(
         modules.map(id => [id, document.getElementById(id)])
     );
@@ -28,7 +27,16 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function applySelection(selected, isChecked) {
-    const modules = ["dyslexia", "adhd", "color_blindness", "epilepsy", "simplify", "reader_mode"];
+    const modules = ["dyslexia", "adhd", "autism", "color_blindness", "epilepsy", "simplify", "reader_mode"];
+
+    if (isChecked) {
+        // Turn off all other checkboxes
+        modules.forEach(m => {
+            if (m !== selected) {
+                const box = document.getElementById(m);
+                if (box) box.checked = false;
+            }
+        });
 
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
         const domain = new URL(tab.url).hostname;

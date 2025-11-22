@@ -74,6 +74,9 @@ function processAllHeadings(root = document) {
     headings.forEach(h => convertHeadingTextNodesToSentenceCaseIfNeeded(h));
 }
 
+// Keep track of original body inline styles so we can restore on remove()
+let _dyslexia_originalBodyStyles = null;
+
 export function apply(options = {}) {
     // options: { fontSizePx, enable }
     const fontSizePx = options.fontSizePx || 16; // default ~12pt
@@ -101,15 +104,14 @@ export function apply(options = {}) {
         `  line-height: 1.6 !important;\n` +
         `  text-align: left !important;\n` +
         `  text-transform: none !important;\n` +
-        `  letter-spacing: 0.5px !important;\n` +
-        `  word-spacing: 0.3px !important;\n` +
-        `  text-decoration: none !important;\n` +
-        `  font-style: normal !important;\n` +
+           `  letter-spacing: 0.5px !important;\n` +
+           `  word-spacing: 0.3px !important;\n` +
+           `  /* reduce visual noise */\n` +
+           `  text-shadow: none !important;\n` +
         `}\n` +
         `/* Headings and emphasis */\n` +
         `.dyslexia-friendly h1, .dyslexia-friendly h2, .dyslexia-friendly h3, .dyslexia-friendly h4, .dyslexia-friendly h5, .dyslexia-friendly h6 {\n` +
         `  font-weight: 700 !important;\n` +
-        `  text-transform: lowercase !important;\n` +
         `  margin-top: 1em !important;\n` +
         `  margin-bottom: 0.5em !important;\n` +
         `}\n` +
@@ -147,6 +149,50 @@ export function apply(options = {}) {
 
     injectStyle(css, 'dyslexia-friendly-style');
 
+    // Inject link and emphasis overrides (loaded after main styles so they win)
+    const linkCss = `.dyslexia-friendly a { text-decoration: underline !important; text-underline-offset: 2px !important; text-decoration-thickness: 1px !important; color: rgba(26,115,232,0.9) !important; }
+    .dyslexia-friendly a:visited { color: rgba(26,115,232,0.7) !important; }
+    .dyslexia-friendly a:hover, .dyslexia-friendly a:focus { box-shadow: 0 0 0 3px rgba(26,115,232,0.08) !important; outline: none !important; }`;
+    injectStyle(linkCss, 'dyslexia-friendly-links');
+
+    // Background presets (users can pass options.bgName or options.bgColor)
+    const presets = {
+        cream: '#fffaf0',
+        pastelBlue: '#f0f8ff',
+        pastelGreen: '#f4fff4',
+        pastelLavender: '#faf0ff',
+        pastelYellow: '#fffef0'
+    };
+
+    const bgName = options.bgName || options.bg || null;
+    const bgColor = options.bgColor || null;
+
+    try {
+        const body = document.body;
+        // If user supplied a bgColor or bgName, apply that preference and save original inline styles.
+        let chosen = null;
+        if (bgColor && typeof bgColor === 'string') chosen = bgColor;
+        else if (bgName && presets[bgName]) chosen = presets[bgName];
+
+        const comp = window.getComputedStyle(body);
+        const currentBg = comp && comp.backgroundColor ? comp.backgroundColor.trim() : '';
+
+        if (chosen) {
+            _dyslexia_originalBodyStyles = { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
+            body.style.backgroundColor = chosen;
+            body.style.color = body.style.color || '#111111';
+        } else {
+            // fallback: if page is white, gently switch to cream
+            if (currentBg === 'rgb(255, 255, 255)' || currentBg === 'rgba(255, 255, 255, 1)' || currentBg === '#ffffff' || currentBg === 'white') {
+                _dyslexia_originalBodyStyles = { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
+                body.style.backgroundColor = body.style.backgroundColor || presets.cream;
+                body.style.color = body.style.color || '#111111';
+            }
+        }
+    } catch (e) {
+        console.warn('Dyslexia mode: background check failed', e);
+    }
+
     // 4) Add class to <html> to apply styles globally
     document.documentElement.classList.add('dyslexia-friendly');
 
@@ -159,12 +205,24 @@ export function apply(options = {}) {
 }
 
 export function remove() {
-    document.documentElement.classList.remove('dyslexic-friendly');
-    const ids = ['dyslexic-friendly-style', 'dyslexic-friendly-face'];
+    document.documentElement.classList.remove('dyslexia-friendly');
+    const ids = ['dyslexia-friendly-style', 'dyslexia-friendly-face', 'dyslexia-friendly-links', 'dyslexia-friendly-italics-override'];
     ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.remove();
     });
+
+    // Restore original body inline styles if we changed them
+    try {
+        const body = document.body;
+        if (_dyslexia_originalBodyStyles && body) {
+            body.style.backgroundColor = _dyslexia_originalBodyStyles.backgroundColor || '';
+            body.style.color = _dyslexia_originalBodyStyles.color || '';
+            _dyslexia_originalBodyStyles = null;
+        }
+    } catch (e) {
+        console.warn('Dyslexia mode: failed to restore body styles', e);
+    }
 }
 
 export default { apply, remove };

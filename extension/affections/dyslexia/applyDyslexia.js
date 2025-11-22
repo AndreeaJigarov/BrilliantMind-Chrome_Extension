@@ -157,10 +157,12 @@ function createDyslexiaPrefsWidget() {
     tab.className = 'dyslexia-pref-tab';
     tab.setAttribute('aria-expanded', 'true');
     tab.title = 'Open dyslexia prefs';
-    tab.textContent = '\u25C0'; // left-pointing triangle
+    // initial: opened -> show right-pointing arrow
+    tab.textContent = '\u25B6'; // right-pointing triangle ▶
     tab.addEventListener('click', () => {
         const closed = widget.classList.toggle('closed');
-        tab.style.transform = closed ? 'rotate(180deg)' : 'rotate(0deg)';
+        // show ◀ when closed, ▶ when opened per user preference
+        tab.textContent = closed ? '\u25C0' : '\u25B6';
         tab.setAttribute('aria-expanded', closed ? 'false' : 'true');
     });
 
@@ -225,7 +227,7 @@ export function apply(options = {}) {
 .dyslexia-friendly li { margin-bottom:0.6rem !important; }
 .dyslexia-friendly [role="column"], .dyslexia-friendly .column, .dyslexia-friendly .col { min-width:200px !important; }
 /* Ensure form controls and editable areas use dyslexia font and follow chosen background */
-.dyslexia-friendly input, .dyslexia-friendly textarea, .dyslexia-friendly select, .dyslexia-friendly button, .dyslexia-friendly [contenteditable] {
+.dyslexia-friendly input, .dyslexia-friendly textarea, .dyslexia-friendly select, .dyslexia-friendly [contenteditable] {
   font-family: 'OpenDyslexic', 'Lexend', Arial, sans-serif !important;
   font-size: inherit !important;
   color: var(--dyslexia-fg, inherit) !important;

@@ -1,7 +1,10 @@
-let colorBlindnessEnabled = false;
-let colorBlindnessType = null; 
-// null | "protanopia" | "deuteranopia" | "tritanopia"
+// Global variables
+let colorBlindnessEnabled = false;  // Flag: whether color blindness mode is active
+let colorBlindnessType = null; // null | "protanopia" | "deuteranopia" | "tritanopia"
 
+
+// SVG Filters for color blindness
+// These filters are used to simulate different types of color blindness
 const svgFilter = `<svg xmlns="http://www.w3.org/2000/svg" style="display:none;" id="color-blindness-filters">
   <filter id="protanopia-filter">
     <feColorMatrix type="matrix" values="0.567,0.433,0,0,0
@@ -29,6 +32,7 @@ const svgFilter = `<svg xmlns="http://www.w3.org/2000/svg" style="display:none;"
   </filter>
 </svg>`;
 
+// Insert SVG filters into the DOM if not already present
 if (!document.getElementById('color-blindness-filters')) {
     document.body.insertAdjacentHTML('beforeend', svgFilter);
 }
@@ -39,7 +43,7 @@ function initColorBlindnessMode() {
 
     applyFilterByType(colorBlindnessType);
 
-    // Observer
+    // Observe DOM changes to reapply filter on new elements
     new MutationObserver(() => {
         if (!colorBlindnessEnabled) return;
         applyFilterByType(colorBlindnessType);
@@ -47,23 +51,24 @@ function initColorBlindnessMode() {
 }
 
 
-//apply filter based on selected type
+// Apply filter to the entire document
 function applyFilterByType(type) {
     let filterId = 'none-filter';
     if (type === 'protanopia') filterId = 'protanopia-filter';
     if (type === 'deuteranopia') filterId = 'deuteranopia-filter';
     if (type === 'tritanopia') filterId = 'tritanopia-filter';
 
+    // Apply the selected filter to the root element
     document.documentElement.style.filter = `url(#${filterId})`;
 }
 
-//remove filter
+// Remove color blindness filter
 function removeColorBlindnessMode() {
     colorBlindnessType = null;
     document.documentElement.style.filter = 'none';
 }
 
-//ui and interaction
+// UI: Menu to select color blindness type
 function createColorBlindnessMenu() {
     if (document.getElementById("colorblind-menu")) return;
 
@@ -84,6 +89,7 @@ function createColorBlindnessMenu() {
         z-index: 999999999999;
     `;
 
+    // Menu content: buttons for each type of color blindness
     menu.innerHTML = `
         <div style="font-size:14px; margin-bottom:8px; font-weight:bold;">
             Color Blindness Mode
@@ -115,6 +121,7 @@ function createColorBlindnessMenu() {
     });
 }
 
+// UI: Toggle button to enable/disable color blindness mode
 function createColorBlindnessToggle() {
     if (document.getElementById("colorblind-toggle")) return;
 
@@ -158,6 +165,6 @@ function createColorBlindnessToggle() {
 
 
 export function apply() {
-    createColorBlindnessToggle();
-    createColorBlindnessMenu();
+    createColorBlindnessToggle();   // Add toggle button
+    createColorBlindnessMenu();   // Add selection menu
 }

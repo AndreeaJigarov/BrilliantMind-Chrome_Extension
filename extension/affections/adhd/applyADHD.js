@@ -1,10 +1,10 @@
 export function apply() {
-    // --- CSS ---
     const style = document.createElement("style");
     style.id = "simplify-style";
     style.textContent = `
-        footer, nav { display: none !important; }
+        footer, nav { display: none !important; }   /* Hide the footer and navigation bar */
 
+        /* Link styling */
         a, a:visited {
             color: #1565C0 !important;
             font-weight: bold;
@@ -17,6 +17,7 @@ export function apply() {
             transition: background-color 0.25s, color 0.25s;
         }
 
+        /* Paragraph focus system: the focused paragraph is fully visible, others are faded */
         p.adhd-focus { opacity: 1 !important; color: #111 !important; }
         p:not(.adhd-focus) {
             opacity: 0.4 !important;
@@ -25,11 +26,12 @@ export function apply() {
             transition: opacity 0.25s, color 0.25s;
         }
 
+        /* Make images fully visible and remove filters/shadows */
         figure, figure *, img { opacity: 1 !important; filter: none !important; text-shadow: none !important; }
 
         body { background: unset !important; }
 
-        /* Table of Contents as table */
+        /* Table of Contents container */
         #adhd-summary {
             border: 1px solid #ccc;
             padding: 16px;
@@ -56,7 +58,7 @@ export function apply() {
         #adhd-summary td[data-level="4"] { padding-left: 48px; font-weight: 500; font-style: italic; }
     `;
 
-    document.head.appendChild(style);
+    document.head.appendChild(style);   // Append the style to the document head
 
     // --- Create Table of Contents ---
     const summary = document.createElement("div");
@@ -68,6 +70,7 @@ export function apply() {
 
     const table = document.createElement("table");
 
+    // Select all headings (h1–h4) and add them to the table of contents
     const headers = Array.from(document.querySelectorAll("h1, h2, h3, h4"));
     headers.forEach(h => {
         const row = document.createElement("tr");
@@ -76,6 +79,7 @@ export function apply() {
         cell.dataset.level = level;
         
         const text = h.innerText;
+        // If the header contains periods, split into multiple lines
         const splitLines = text.indexOf('.') > 0 ? text.split('. ') : [text];
         cell.innerHTML = splitLines.map(line => `• ${line}`).join('<br>');
         
@@ -84,30 +88,29 @@ export function apply() {
     });
 
 
-
-
-
     summary.appendChild(table);
     const firstElement = document.body.firstElementChild;
-    document.body.insertBefore(summary, firstElement);
+    document.body.insertBefore(summary, firstElement);  // Insert the summary at the top of the body
 
     // --- Paragraph focus system ---
     const paragraphs = Array.from(document.querySelectorAll("p"));
     if (paragraphs.length) {
-        let current = 0;
+        let current = 0;    
         function setFocus(idx) {
             paragraphs.forEach((p, i) => p.classList.toggle("adhd-focus", i === idx));
             paragraphs[idx].scrollIntoView({ behavior: "smooth", block: "center" });
         }
-        setFocus(current);
+        setFocus(current);  // Start with the first paragraph focused
         function nextPara() { if (current < paragraphs.length - 1) { current++; setFocus(current); } }
         function prevPara() { if (current > 0) { current--; setFocus(current); } }
 
+        // Navigate paragraphs using arrow keys or page up/down
         window.addEventListener("keydown", e => {
             if (e.key === "ArrowDown" || e.key === "PageDown") { nextPara(); e.preventDefault(); }
             if (e.key === "ArrowUp" || e.key === "PageUp") { prevPara(); e.preventDefault(); }
         });
 
+         // Navigate paragraphs using mouse wheel (throttled)
         let lastScroll = 0;
         window.addEventListener("wheel", e => {
             const now = Date.now();
@@ -117,8 +120,9 @@ export function apply() {
         }, { passive: false });
     }
 
-    // --- GIF pausing system ---
+    // GIF pausing system
     function getStaticFrame(img) {
+        // Convert first frame of GIF to static PNG
         return new Promise(resolve => {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
@@ -136,6 +140,7 @@ export function apply() {
     }
 
     function findRealGifURL(img) {
+        // Attempt to find the original GIF URL from various sources/attributes
         if (img.dataset.gif) return img.dataset.gif;
         if (img.dataset.src?.endsWith(".gif")) return img.dataset.src;
         if (img.dataset.original?.endsWith(".gif")) return img.dataset.original;
@@ -150,6 +155,7 @@ export function apply() {
     }
 
     async function replaceGif(img) {
+         // Replace GIF with static frame and overlay
         if (img.dataset.gifReplaced === "true") return;
         img.dataset.gifReplaced = "true";
 
@@ -189,7 +195,7 @@ export function apply() {
 
         let playing = false;
 
-        // --- Start GIF on hover ---
+        // Start GIF on hover
         wrapper.addEventListener("mouseenter", () => {
             if (!playing) {
                 staticImg.src = realGif;
@@ -199,7 +205,7 @@ export function apply() {
             }
         });
 
-        // --- Stop GIF on mouse leave ---
+        // Stop GIF on mouse leave
         wrapper.addEventListener("mouseleave", () => {
             if (playing) {
                 staticImg.src = staticSrc;
@@ -209,11 +215,12 @@ export function apply() {
             }
         });
 
-        // --- Prevent navigation if wrapped in link ---
+        // Prevent navigation if GIF is inside a link
         wrapper.addEventListener("click", e => e.preventDefault());
     }
 
     function detectAndReplaceAllGifs() {
+        // Scan all images and replace GIFs with static version
         const imgs = Array.from(document.querySelectorAll("img"));
         for (const img of imgs) {
             if (img.closest("[data-epilepsy-wrapper]")) continue;
@@ -231,10 +238,11 @@ export function apply() {
 
     function initGifProtection() {
         detectAndReplaceAllGifs();
+         // Observe DOM changes to detect dynamically added GIFs
         new MutationObserver(() => detectAndReplaceAllGifs())
             .observe(document.body, { childList: true, subtree: true });
     }
 
-    initGifProtection();
+    initGifProtection();     // Initialize GIF protection system
 
 }

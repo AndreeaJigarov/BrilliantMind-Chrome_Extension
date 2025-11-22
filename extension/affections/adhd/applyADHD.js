@@ -1,20 +1,20 @@
 export function apply() {
-    // --- Inject CSS styles ---
+    // --- CSS ---
     const style = document.createElement("style");
     style.id = "simplify-style";
     style.textContent = `
         footer, nav { display: none !important; }
 
         a, a:visited {
-            background-color: #E3F2FD !important;
-            color: #1565C0 !important;
-            border-radius: 4px;
-            padding: 2px 4px;
+            color: #1565C0 !important;   /* albastru intens */
+            font-weight: bold;
             text-decoration: underline !important;
+            background-color: unset !important; /* păstrează highlight-ul nativ la selectare */
         }
         a:hover, a:focus {
-            background-color: #BBDEFB !important;
-            color: #0D47A1 !important;
+            color: #0D47A1 !important;    /* albastru mai închis */
+            background-color: rgba(187, 222, 251, 0.3) !important; /* ușor highlight pe hover */
+            transition: background-color 0.25s, color 0.25s;
         }
 
         p.adhd-focus { opacity: 1 !important; color: #111 !important; }
@@ -27,14 +27,14 @@ export function apply() {
 
         figure, figure *, img { opacity: 1 !important; filter: none !important; text-shadow: none !important; }
 
-        body { background: #fff !important; }
+        body { background: unset !important; }
 
         /* Table of Contents as table */
         #adhd-summary {
-            border: 1px solid #ccc;
+            border: 1px solid unset;
             padding: 12px;
             margin-bottom: 24px;
-            background: #f9f9f9;
+            background: unset;
             font-family: sans-serif;
         }
         #adhd-summary h2 { margin-top: 0; font-size: 1.2em; }

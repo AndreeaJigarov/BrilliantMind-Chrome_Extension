@@ -43,6 +43,8 @@
         "affections/adhd/*.css",
         "affections/color_blindness/*.js",
         "affections/color_blindness/*.css",
+        "affections/partially_blindness/*.js",
+        "affections/partially_blindness/*.css",
         "affections/dyslexia/*.js",
         "affections/dyslexia/*.css",
         "affections/epilepsy/*.js",

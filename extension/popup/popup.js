@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function applySelection(selected, isChecked) {
-    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy", "simplify"];
+    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy", "simplify", "reader_mode"];
 
     if (isChecked) {
         // Turn off all other checkboxes

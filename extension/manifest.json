@@ -27,7 +27,10 @@
         "affections/epilepsy/*.js",
         "affections/epilepsy/*.css",
         "affections/simplify/*.js",
-        "affections/simplify/*.css"
+        "affections/simplify/*.css",
+        "affections/reader_mode/*.js",
+        "affections/reader_mode/*.css"
+
 
 
       ],

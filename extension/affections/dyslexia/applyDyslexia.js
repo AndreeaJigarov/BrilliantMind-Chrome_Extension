@@ -167,9 +167,15 @@ function applyBackgroundToTextAreas(chosen) {
                 const comp = window.getComputedStyle(el);
                 if (!comp) return;
                 const bg = comp.backgroundColor || '';
+                // If we've modified this element before, always update it to the new chosen color.
+                if (el.hasAttribute('data-dyslexia-orig-bg')) {
+                    el.style.backgroundColor = chosen;
+                    el.style.color = el.style.color || '#111111';
+                    return;
+                }
                 if (!bg) return;
+                // Only auto-apply to elements that are white-ish, and that contain visible text
                 if (!isColorCloseToWhite(bg)) return;
-                // require that this element contains visible text
                 if (!elementHasVisibleText(el)) return;
                 // store original inline styles if not already stored
                 if (!el.hasAttribute('data-dyslexia-orig-bg')) el.setAttribute('data-dyslexia-orig-bg', el.style.backgroundColor || '');
@@ -199,6 +205,13 @@ function applyBackgroundToFormControls(chosen) {
                 const comp = window.getComputedStyle(el);
                 if (!comp) return;
                 const bg = comp.backgroundColor || '';
+                // If we've modified this control before, always update it.
+                if (el.hasAttribute('data-dyslexia-orig-bg')) {
+                    el.style.backgroundImage = 'none';
+                    el.style.backgroundColor = chosen;
+                    el.style.color = el.style.color || '#111111';
+                    return;
+                }
                 // If it's already dark or transparent, skip
                 if (!isColorCloseToWhite(bg)) return;
                 // store original inline styles
@@ -290,6 +303,78 @@ function rgbStringToRgb(s) {
     const m = s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
     if (!m) return null;
     return { r: parseInt(m[1], 10), g: parseInt(m[2], 10), b: parseInt(m[3], 10) };
+}
+
+function rgbToHex(rgb) {
+    if (!rgb) return null;
+    const r = (rgb.r || 0) & 255;
+    const g = (rgb.g || 0) & 255;
+    const b = (rgb.b || 0) & 255;
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+function rgbToHsl(rgb) {
+    let r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return { h: h, s: s, l: l };
+}
+
+function hslToRgb(hsl) {
+    const h = hsl.h, s = hsl.s, l = hsl.l;
+    function hue2rgb(p, q, t) {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+    }
+    let r, g, b;
+    if (s === 0) {
+        r = g = b = l; // achromatic
+    } else {
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+}
+
+function adjustColorLightness(colorStr, delta) {
+    if (!colorStr) return null;
+    let rgb = null;
+    if (typeof colorStr === 'string' && colorStr.startsWith('#')) rgb = hexToRgb(colorStr);
+    else if (typeof colorStr === 'string' && colorStr.startsWith('rgb')) rgb = rgbStringToRgb(colorStr);
+    if (!rgb) return null;
+    const hsl = rgbToHsl(rgb);
+    hsl.l = Math.max(0, Math.min(1, hsl.l + delta));
+    const out = hslToRgb(hsl);
+    return rgbToHex(out);
+}
+
+function getComputedFgColor() {
+    try {
+        const root = document.documentElement;
+        const varVal = window.getComputedStyle(root).getPropertyValue('--dyslexia-fg');
+        if (varVal && varVal.trim()) return varVal.trim();
+        const body = document.body;
+        const comp = window.getComputedStyle(body);
+        if (comp && comp.color) return comp.color;
+    } catch (e) {}
+    return null;
 }
 
 function isColorCloseToWhite(color) {
@@ -489,11 +574,18 @@ export function apply(options = {}) {
         const comp = window.getComputedStyle(body);
         const currentBg = comp && comp.backgroundColor ? comp.backgroundColor.trim() : '';
         _dyslexia_pageIsDark = isColorDark(currentBg);
-        // Choose appropriate link color variable: darker for light pages, lighter for dark pages
+        // Choose appropriate link color variable derived from the page text color so hue is preserved
         try {
-            const linkForDark = '#9ad0ff'; // readable cyan-ish in dark mode
-            const linkForLight = '#173333'; // darker muted slate for light mode
-            const chosenLink = _dyslexia_pageIsDark ? linkForDark : linkForLight;
+            const fg = getComputedFgColor();
+            // delta: lighten by +0.18 in dark mode, darken by -0.18 in light mode
+            let chosenLink = null;
+            if (fg) {
+                const delta = _dyslexia_pageIsDark ? 0.18 : -0.18;
+                const adjusted = adjustColorLightness(fg, delta);
+                if (adjusted) chosenLink = adjusted;
+            }
+            // fallback colors if computation fails
+            if (!chosenLink) chosenLink = _dyslexia_pageIsDark ? '#9ad0ff' : '#173333';
             document.documentElement.style.setProperty('--dyslexia-link', chosenLink);
         } catch (e) {}
 

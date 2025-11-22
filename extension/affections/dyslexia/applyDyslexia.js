@@ -1,12 +1,12 @@
-// extension/affections/dyslexia/applyDyslexia.js
+
 
 export function apply() {
     console.log("[DYSLEXIA] Applying dyslexia formatting…");
 
-    // Add the global dyslexia class
+    //add the global dyslexia class
     document.documentElement.classList.add("dyslexia-mode");
 
-    // Load personalized preferences (background + font size)
+    //load personalized preferences
     chrome.storage.sync.get(
         ["dyslexia_background", "dyslexia_fontsize"],
         ({ dyslexia_background, dyslexia_fontsize }) => {

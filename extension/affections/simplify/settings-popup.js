@@ -1,0 +1,80 @@
+// affections/simplify/settings-popup.js
+// Remove the import and use the class directly
+
+class SimplifySettings {
+    static async getSettings() {
+        return new Promise((resolve) => {
+            chrome.storage.sync.get(['simplifySettings'], (result) => {
+                resolve(result.simplifySettings || {
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                    textColor: '#333',
+                    lineHeight: '1.5',
+                    letterSpacing: '0',
+                    enabled: true
+                });
+            });
+        });
+    }
+
+    static async saveSettings(settings) {
+        return new Promise((resolve) => {
+            chrome.storage.sync.set({ simplifySettings: settings }, resolve);
+        });
+    }
+}
+
+// Update range value displays
+function initializeRangeDisplays() {
+    const lineHeightSlider = document.getElementById('lineHeight');
+    const letterSpacingSlider = document.getElementById('letterSpacing');
+    
+    if (lineHeightSlider) {
+        lineHeightSlider.addEventListener('input', function() {
+            document.getElementById('lineHeightValue').textContent = this.value;
+        });
+    }
+    
+    if (letterSpacingSlider) {
+        letterSpacingSlider.addEventListener('input', function() {
+            document.getElementById('letterSpacingValue').textContent = this.value + 'px';
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const settings = await SimplifySettings.getSettings();
+    
+    // Load current settings
+    document.getElementById('enableToggle').checked = settings.enabled;
+    document.getElementById('fontFamily').value = settings.fontFamily;
+    document.getElementById('textColor').value = settings.textColor;
+    
+    // Load new settings with fallbacks
+    if (document.getElementById('lineHeight')) {
+        document.getElementById('lineHeight').value = settings.lineHeight || '1.5';
+        document.getElementById('lineHeightValue').textContent = settings.lineHeight || '1.5';
+    }
+    
+    if (document.getElementById('letterSpacing')) {
+        document.getElementById('letterSpacing').value = settings.letterSpacing || '0';
+        document.getElementById('letterSpacingValue').textContent = (settings.letterSpacing || '0') + 'px';
+    }
+    
+    // Initialize range displays
+    initializeRangeDisplays();
+    
+    // Save settings
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+        const newSettings = {
+            enabled: document.getElementById('enableToggle').checked,
+            fontFamily: document.getElementById('fontFamily').value,
+            textColor: document.getElementById('textColor').value,
+            lineHeight: document.getElementById('lineHeight').value,
+            letterSpacing: document.getElementById('letterSpacing').value
+        };
+        
+        await SimplifySettings.saveSettings(newSettings);
+        alert('Settings saved! Refresh pages to see changes.');
+        window.close(); // Close the popup after saving
+    });
+});

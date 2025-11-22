@@ -84,3 +84,9 @@ function injectReaderCSS() {
             document.head.appendChild(style);
         });
 }
+loadAIToolbar();
+function loadAIToolbar() {
+    import(chrome.runtime.getURL("ai/aiToolbar.js"))
+        .then(module => module.initAIToolbar())
+        .catch(err => console.error("AI Toolbar failed to load:", err));
+}

@@ -261,6 +261,9 @@ function createDyslexiaPrefsWidget() {
     try {
         storage.get(['dyslexiaPrefs'], (res = {}) => {
             const stored = (res && res.dyslexiaPrefs) || {};
+            // If we detected the page is dark, avoid auto-applying stored backgrounds
+            // to prevent overwriting a site's dark theme. User can still manually apply via the widget.
+            if (_dyslexia_pageIsDark) return;
             const presetsMap = { offWhite: '#F5F2EB', softCream: '#F9F4DB', softGrayBlue: '#B4C3CD', sageGrayGreen: '#B8C4B6' };
             if (stored.bgColor) applyBackgroundChoice('custom', stored.bgColor);
             else if (stored.bgName && presetsMap[stored.bgName]) applyBackgroundChoice(stored.bgName, presetsMap[stored.bgName]);

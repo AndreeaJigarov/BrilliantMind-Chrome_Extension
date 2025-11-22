@@ -3,7 +3,7 @@ export function apply() {
     const style = document.createElement("style");
     style.id = "simplify-style";
     style.textContent = `
-        header, footer, nav { display: none !important; }
+        footer, nav { display: none !important; }
 
         a, a:visited {
             background-color: #E3F2FD !important;
@@ -145,7 +145,7 @@ export function apply() {
         staticImg.style.pointerEvents = "none";
 
         const overlay = document.createElement("div");
-        overlay.innerText = "⚠ GIF – Click pentru a porni";
+        overlay.innerText = "⚠ GIF – Hover pentru a porni";
         overlay.style.position = "absolute";
         overlay.style.top = "0";
         overlay.style.left = "0";
@@ -165,18 +165,29 @@ export function apply() {
         img.replaceWith(wrapper);
 
         let playing = false;
-        wrapper.addEventListener("click", () => {
+
+        // --- Start GIF on hover ---
+        wrapper.addEventListener("mouseenter", () => {
             if (!playing) {
                 staticImg.src = realGif;
-                overlay.innerText = "✋ Click pentru a opri GIF-ul";
                 overlay.style.background = "rgba(0,0,0,0.35)";
-            } else {
-                staticImg.src = staticSrc;
-                overlay.innerText = "⚠ GIF – Click pentru a porni";
-                overlay.style.background = "rgba(0,0,0,0.55)";
+                overlay.innerText = "✋ GIF activ";
+                playing = true;
             }
-            playing = !playing;
         });
+
+        // --- Stop GIF on mouse leave ---
+        wrapper.addEventListener("mouseleave", () => {
+            if (playing) {
+                staticImg.src = staticSrc;
+                overlay.style.background = "rgba(0,0,0,0.55)";
+                overlay.innerText = "⚠ GIF – Hover pentru a porni";
+                playing = false;
+            }
+        });
+
+        // --- Prevent navigation if wrapped in link ---
+        wrapper.addEventListener("click", e => e.preventDefault());
     }
 
     function detectAndReplaceAllGifs() {
@@ -184,7 +195,6 @@ export function apply() {
         for (const img of imgs) {
             if (img.closest("[data-epilepsy-wrapper]")) continue;
             if (img.dataset.gifReplaced === "true") continue;
-
             const src = img.src?.toLowerCase() || "";
             const looksLikeGif =
                 src.endsWith(".gif") ||
@@ -192,7 +202,6 @@ export function apply() {
                 img.dataset.src?.endsWith(".gif") ||
                 img.dataset.original?.endsWith(".gif") ||
                 src.includes("giphy.com/media");
-
             if (looksLikeGif) replaceGif(img);
         }
     }
@@ -204,4 +213,5 @@ export function apply() {
     }
 
     initGifProtection();
+
 }

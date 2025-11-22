@@ -16,6 +16,8 @@
   "web_accessible_resources": [
     {
       "resources": [
+        "ai/*.js",
+        "ai/*.css",
         "affections/base/*.js",
         "affections/base/*.css",
         "affections/adhd/*.js",

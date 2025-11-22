@@ -68,3 +68,85 @@
 	color: inherit !important;
 }
 
+/* Hide extra page UI (table of contents, sidebars, banners, sticky UI) */
+.autism-hide-extras .toc,
+.autism-hide-extras #toc,
+.autism-hide-extras .table-of-contents,
+.autism-hide-extras .mw-navigation,
+.autism-hide-extras #mw-panel,
+.autism-hide-extras .sidebar,
+.autism-hide-extras aside,
+.autism-hide-extras nav,
+.autism-hide-extras header,
+.autism-hide-extras footer,
+.autism-hide-extras .site-tools,
+.autism-hide-extras .search,
+.autism-hide-extras .searchbox,
+.autism-hide-extras .infobox,
+.autism-hide-extras .mw-head,
+.autism-hide-extras .portal,
+.autism-hide-extras .mw-editsection,
+.autism-hide-extras .navbox,
+.autism-hide-extras .metadata,
+.autism-hide-extras .mw-indicators,
+.autism-hide-extras .mw-page-header,
+.autism-hide-extras [role="banner"],
+.autism-hide-extras [role="navigation"],
+.autism-hide-extras [role="complementary"],
+.autism-hide-extras [role="search"] {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	width: 0 !important;
+	overflow: hidden !important;
+}
+
+/* Hide many fixed/sticky UI elements which often act as distractions */
+.autism-hide-extras [style*="position:fixed"],
+.autism-hide-extras [style*="position:sticky"] {
+	display: none !important;
+}
+
+/* Vertical layout and spacing for primary content */
+.autism-vertical-layout main,
+.autism-vertical-layout article,
+.autism-vertical-layout #content,
+.autism-vertical-layout #mw-content-text {
+	display: block !important;
+	width: 100% !important;
+	max-width: 900px !important;
+	margin: 18px auto !important;
+	padding: 12px 18px !important;
+}
+
+.autism-vertical-layout main > *,
+.autism-vertical-layout article > *,
+.autism-vertical-layout #content > * {
+	display: block !important;
+	width: 100% !important;
+	margin: 14px 0 !important;
+	padding: 0 !important;
+}
+
+.autism-vertical-layout h1,
+.autism-vertical-layout h2,
+.autism-vertical-layout h3 {
+	margin-top: 22px !important;
+	margin-bottom: 10px !important;
+}
+
+.autism-vertical-layout p,
+.autism-vertical-layout li,
+.autism-vertical-layout blockquote {
+	font-size: 18px !important;
+	line-height: 1.6 !important;
+	margin: 10px 0 !important;
+}
+
+.autism-vertical-layout img {
+	display: block !important;
+	max-width: 100% !important;
+	margin: 12px 0 !important;
+	height: auto !important;
+}
+

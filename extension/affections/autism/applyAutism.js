@@ -1,27 +1,54 @@
 export function apply() {
 	console.log("Autism module activated: applying color-reduction styles");
-
 	const styleId = "autism-color-reduction-style";
+
+
+		// Do not inject CSS dynamically here — the rules live in styles.css.
+		function enableHideExtras() {
+			document.documentElement.classList.add('autism-hide-extras');
+		}
+
+		function disableHideExtras() {
+			document.documentElement.classList.remove('autism-hide-extras');
+		}
+
+		function toggleHideExtras() {
+			document.documentElement.classList.toggle('autism-hide-extras');
+		}
+
+		function enableVerticalLayout() {
+			document.documentElement.classList.add('autism-vertical-layout');
+		}
+
+		function disableVerticalLayout() {
+			document.documentElement.classList.remove('autism-vertical-layout');
+		}
+
+		function toggleVerticalLayout() {
+			document.documentElement.classList.toggle('autism-vertical-layout');
+		}
 
 	function enable() {
 		if (document.getElementById(styleId)) return;
 
-		fetch(chrome.runtime.getURL("affections/autism/styles.css"))
-			.then(r => r.text())
-			.then(css => {
-				const style = document.createElement("style");
-				style.id = styleId;
-				style.textContent = css;
-				document.head.appendChild(style);
-				document.documentElement.classList.add("autism-color-reduced");
-			})
-			.catch(err => console.error("Failed to load autism styles:", err));
+		const link = document.createElement('link');
+		link.id = styleId;
+		link.rel = 'stylesheet';
+		link.href = chrome.runtime.getURL('affections/autism/styles.css');
+		document.head.appendChild(link);
+		document.documentElement.classList.add('autism-color-reduced');
+		// Apply hide-extras and vertical layout by default
+		enableHideExtras();
+		enableVerticalLayout();
 	}
 
 	function disable() {
 		const style = document.getElementById(styleId);
 		if (style) style.remove();
 		document.documentElement.classList.remove("autism-color-reduced");
+		// Revert extras/layout when disabling
+		disableHideExtras();
+		disableVerticalLayout();
 	}
 
 	function toggle() {
@@ -35,6 +62,17 @@ export function apply() {
 		window.__autismAccessibility.disable = disable;
 		window.__autismAccessibility.toggle = toggle;
 		window.__autismAccessibility.enabled = () => !!document.getElementById(styleId);
+
+		// expose hide-extras and vertical layout controls
+		window.__autismAccessibility.enableHideExtras = enableHideExtras;
+		window.__autismAccessibility.disableHideExtras = disableHideExtras;
+		window.__autismAccessibility.toggleHideExtras = toggleHideExtras;
+		window.__autismAccessibility.hideExtrasEnabled = () => document.documentElement.classList.contains('autism-hide-extras');
+
+		window.__autismAccessibility.enableVerticalLayout = enableVerticalLayout;
+		window.__autismAccessibility.disableVerticalLayout = disableVerticalLayout;
+		window.__autismAccessibility.toggleVerticalLayout = toggleVerticalLayout;
+		window.__autismAccessibility.verticalLayoutEnabled = () => document.documentElement.classList.contains('autism-vertical-layout');
 	} catch (e) {
 		// ignore if pages forbid assigning to window
 	}
@@ -42,4 +80,7 @@ export function apply() {
 	// Enable by default when module is applied
 	enable();
 }
+
+
+
 

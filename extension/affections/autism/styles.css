@@ -204,23 +204,16 @@
 	color: rgba(0,0,0,0.7) !important;
 }
 
-/* Ensure sections and generic divs stack vertically and remove multi-column/floats */
-.autism-vertical-layout section,
-.autism-vertical-layout div {
+/* Limit stacking/flow changes to the primary content region only.
+   Avoid globally changing all div/section elements which can break site layouts. */
+.autism-vertical-layout main > *,
+.autism-vertical-layout article > *,
+.autism-vertical-layout #content > * {
 	display: block !important;
 	width: 100% !important;
 	float: none !important;
 	clear: both !important;
 	margin: 18px 0 !important;
-}
-
-/* Handle common column/grid utilities by forcing single-column flow */
-.autism-vertical-layout [class*="col-"],
-.autism-vertical-layout [class*="column"],
-.autism-vertical-layout [class*="grid"],
-.autism-vertical-layout [class*="row"] {
-	display: block !important;
-	width: 100% !important;
 }
 
 /* Make lists easier to scan by increasing spacing between items */
@@ -239,4 +232,9 @@
 	margin: 18px 0 !important;
 	border-collapse: collapse !important;
 }
+
+/* Note: DOM-based ad removal was removed from the autism module.
+   If ad hiding is desired later, prefer non-destructive, well-scoped rules
+   or a network-level approach (declarativeNetRequest) configured in the
+   extension manifest. */
 

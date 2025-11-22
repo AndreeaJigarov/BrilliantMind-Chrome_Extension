@@ -28,6 +28,8 @@ export function apply() {
 			document.documentElement.classList.toggle('autism-vertical-layout');
 		}
 
+		// ad-blocking removed: autism mode will no longer attempt DOM-based ad removal.
+
 	function enable() {
 		if (document.getElementById(styleId)) return;
 
@@ -40,6 +42,7 @@ export function apply() {
 		// Apply hide-extras and vertical layout by default
 		enableHideExtras();
 		enableVerticalLayout();
+		// No DOM-based ad blocking in autism view (conservative approach).
 	}
 
 	function disable() {
@@ -49,6 +52,7 @@ export function apply() {
 		// Revert extras/layout when disabling
 		disableHideExtras();
 		disableVerticalLayout();
+		// Nothing to stop: no DOM-based ad blocking active.
 	}
 
 	function toggle() {
@@ -73,6 +77,8 @@ export function apply() {
 		window.__autismAccessibility.disableVerticalLayout = disableVerticalLayout;
 		window.__autismAccessibility.toggleVerticalLayout = toggleVerticalLayout;
 		window.__autismAccessibility.verticalLayoutEnabled = () => document.documentElement.classList.contains('autism-vertical-layout');
+
+		// No ad controls exposed for autism module.
 	} catch (e) {
 		// ignore if pages forbid assigning to window
 	}

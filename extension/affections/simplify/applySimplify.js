@@ -1,6 +1,20 @@
+class SimplifySettings {
+    static async getSettings() {
+        return new Promise((resolve) => {
+            chrome.storage.sync.get(['simplifySettings'], (result) => {
+                resolve(result.simplifySettings || {
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                    textColor: '#333',
+                    enabled: true
+                });
+            });
+        });
+    }
+}
+
 export function apply() {
     console.log("Simplify module activated");
-
+    
     if (document.readyState === "complete") {
         runSimplify();
     } else {
@@ -8,21 +22,29 @@ export function apply() {
     }
 }
 
-function runSimplify() {
+async function runSimplify() {
     console.log("Applying familiar styling...");
-    applyConsistentFonts();
-    //applyComfortableSpacing();
-    applyBetterContrast();
+    const settings = await SimplifySettings.getSettings();
+    
+    if (!settings.enabled) {
+        console.log("Simplify is disabled");
+        return;
+    }
+    
+    applyConsistentFonts(settings);
+    applyBetterContrast(settings);
+    applyComfortableSpacing(settings); // Updated to take settings
     //applyComfortableWidth();
-    cleanupMedia();
-    improveCodeAndLists();
+    //cleanupMedia();
+    //improveCodeAndLists();
 }
 
-function applyConsistentFonts() {
+function applyConsistentFonts(settings) {
     const css = `
         /* Step 1: Consistent fonts everywhere */
         * {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            font-family: ${settings.fontFamily} !important;
+            letter-spacing: ${settings.letterSpacing}px !important;
         }
     `;
     
@@ -31,11 +53,11 @@ function applyConsistentFonts() {
     document.head.appendChild(style);
 }
 
-function applyComfortableSpacing() {
+function applyComfortableSpacing(settings) {
     const css = `
         /* Step 2: Comfortable line height and text spacing */
         body {
-            line-height: 1.6 !important;
+            line-height: ${settings.lineHeight} !important;
         }
         
         p {
@@ -56,11 +78,11 @@ function applyComfortableSpacing() {
     console.log("Applied comfortable spacing");
 }
 
-function applyBetterContrast() {
+function applyBetterContrast(settings) {
     const css = `
         /* Step 3: Better text contrast and readability */
         body {
-            color: #333 !important;
+            color: ${settings.textColor} !important;
             background: white !important;
         }
         

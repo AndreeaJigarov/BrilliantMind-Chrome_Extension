@@ -1,3 +1,7 @@
+// ===============================
+//    GIF PROTECTION — HOVER MODE
+// ===============================
+
 // 🔹 Extrage primul frame din GIF ca imagine statică
 function getStaticFrame(img) {
     return new Promise(resolve => {
@@ -32,6 +36,7 @@ function findRealGifURL(img) {
     if (img.dataset.original?.endsWith(".gif")) return img.dataset.original;
     if (img.dataset.preview?.endsWith(".gif")) return img.dataset.preview;
 
+    // GIPHY fix: _s ==> full GIF
     if (img.src.includes("giphy.com/media") && img.src.includes("_s.")) {
         return img.src.replace("_s.", ".");
     }
@@ -39,14 +44,16 @@ function findRealGifURL(img) {
     const picture = img.closest("picture");
     if (picture) {
         const source = picture.querySelector("source[srcset*='.gif'], source[type='image/gif']");
-        if (source) return source.srcset.split(" ")[0];
+        if (source) {
+            return source.srcset.split(" ")[0];
+        }
     }
 
     return img.src;
 }
 
 
-// 🔹 Înlocuiește GIF-ul cu wrapper static + overlay
+// 🔹 Înlocuiește GIF-ul cu static + overlay + hover behavior
 async function replaceGif(img) {
     if (img.dataset.gifReplaced === "true") return;
     img.dataset.gifReplaced = "true";
@@ -58,10 +65,7 @@ async function replaceGif(img) {
     wrapper.style.position = "relative";
     wrapper.style.display = "inline-block";
     wrapper.style.cursor = "pointer";
-    wrapper.style.pointerEvents = "auto";
-    wrapper.style.zIndex = "999999";
-
-    wrapper.dataset.epilepsyWrapper = "true"; // 🔥 IMPORTANT
+    wrapper.dataset.epilepsyWrapper = "true";
 
     const staticImg = document.createElement("img");
     staticImg.src = staticSrc || img.src;
@@ -69,13 +73,13 @@ async function replaceGif(img) {
     staticImg.style.pointerEvents = "none";
 
     const overlay = document.createElement("div");
-    overlay.innerText = "⚠️ GIF – Click pentru a porni";
+    overlay.innerText = "⚠ GIF – Hover pentru a porni";
     overlay.style.position = "absolute";
     overlay.style.top = "0";
     overlay.style.left = "0";
     overlay.style.width = "100%";
     overlay.style.height = "100%";
-    overlay.style.background = "rgba(0, 0, 0, 0.55)";
+    overlay.style.background = "rgba(0,0,0,0.55)";
     overlay.style.color = "white";
     overlay.style.display = "flex";
     overlay.style.alignItems = "center";
@@ -91,30 +95,41 @@ async function replaceGif(img) {
 
     let playing = false;
 
-    wrapper.addEventListener("click", () => {
+    // 🔥 Start GIF on hover
+    wrapper.addEventListener("mouseenter", () => {
         if (!playing) {
             staticImg.src = realGif;
-            overlay.innerText = "✋ Click pentru a opri GIF-ul";
-            overlay.style.background = "rgba(0, 0, 0, 0.35)";
-        } else {
-            staticImg.src = staticSrc;
-            overlay.innerText = "⚠️ GIF – Click pentru a porni";
-            overlay.style.background = "rgba(0, 0, 0, 0.55)";
+            overlay.innerText = "✋ GIF activ";
+            overlay.style.background = "rgba(0,0,0,0.35)";
+            playing = true;
         }
-        playing = !playing;
     });
+
+    // 🔥 Stop GIF on mouse leave
+    wrapper.addEventListener("mouseleave", () => {
+        if (playing) {
+            staticImg.src = staticSrc;
+            overlay.innerText = "⚠ GIF – Hover pentru a porni";
+            overlay.style.background = "rgba(0,0,0,0.55)";
+            playing = false;
+        }
+    });
+
+    // 🔥 Prevent link navigation if GIF is inside <a>
+    wrapper.addEventListener("click", e => e.preventDefault());
 }
 
 
-// 🔹 Detectează GIF-uri noi — DAR fără să reînlocuiască wrapper-ele
+// 🔹 Detectează GIF-uri noi
 function detectAndReplaceAllGifs() {
-    const imgs = Array.from(document.querySelectorAll("img, video"));
+    const imgs = Array.from(document.querySelectorAll("img"));
 
     for (const img of imgs) {
         if (img.closest("[data-epilepsy-wrapper]")) continue;
         if (img.dataset.gifReplaced === "true") continue;
 
         const src = img.src?.toLowerCase() || "";
+
         const looksLikeGif =
             src.endsWith(".gif") ||
             img.dataset.gif ||
@@ -135,6 +150,147 @@ function initGifProtection() {
         .observe(document.body, { childList: true, subtree: true });
 }
 
+// ===============================
+//   VIDEO PLAY / STOP OVERLAY
+// ===============================
+
+function createVideoOverlay(message = "⚠ VIDEO – Click pentru a porni") {
+    const overlay = document.createElement("div");
+    overlay.innerText = message;
+    overlay.style.position = "absolute";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = "rgba(0,0,0,0.55)";
+    overlay.style.color = "white";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.fontSize = "16px";
+    overlay.style.fontFamily = "sans-serif";
+    overlay.style.textAlign = "center";
+    overlay.style.zIndex = "99999";
+    overlay.style.cursor = "pointer";
+
+    return overlay;
+}
+
+function wrapVideo(video) {
+    if (video.dataset.epilepsyWrapped === "true") return;
+    video.dataset.epilepsyWrapped = "true";
+
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.display = "inline-block";
+    wrapper.style.width = video.clientWidth + "px";
+    wrapper.style.cursor = "pointer";
+
+    const overlay = createVideoOverlay();
+
+    video.parentNode.insertBefore(wrapper, video);
+    wrapper.appendChild(video);
+    wrapper.appendChild(overlay);
+
+    video.autoplay = false;
+    video.pause();
+    video.muted = false;
+
+    let playing = false;
+
+    // FIRST CLICK → PLAY
+    overlay.addEventListener("click", () => {
+        playing = true;
+        video.play();
+        overlay.style.display = "none";
+    });
+
+    // CLICK ON VIDEO → STOP + SHOW OVERLAY AGAIN
+    video.addEventListener("click", () => {
+        if (playing) {
+            video.pause();
+            playing = false;
+            overlay.innerText = "✋ VIDEO – Click pentru a porni din nou";
+            overlay.style.display = "flex";
+        }
+    });
+
+    // If video finished → show overlay again
+    video.addEventListener("ended", () => {
+        playing = false;
+        overlay.innerText = "⚠ VIDEO – Click pentru a porni";
+        overlay.style.display = "flex";
+    });
+}
+
+function detectVideos() {
+    document.querySelectorAll("video").forEach(wrapVideo);
+}
+
+function initVideoProtection() {
+    detectVideos();
+
+    new MutationObserver(() => {
+        detectVideos();
+    }).observe(document.body, { childList: true, subtree: true });
+}
+
+// ===============================
+// 💥 FINAL ANIMATION BLOCKER (guaranteed)
+// ===============================
+
+function initAnimationBlocker() {
+    // 1. CSS absolut (injectat pe <html>)
+    const style = document.createElement("style");
+    style.textContent = `
+        * {
+            animation: none !important;
+            animation-duration: 0s !important;
+            animation-iteration-count: 1 !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
+        }
+    `;
+    document.documentElement.appendChild(style);
+
+    // 2. CSSSheet injectat cu prioritate maximă
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(`
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    `);
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+
+    // 3. Patch direct pe style computed — această parte e invincibilă
+    function patchElement(el) {
+        try {
+            el.style.setProperty("animation", "none", "important");
+            el.style.setProperty("transition", "none", "important");
+            el.style.setProperty("scroll-behavior", "auto", "important");
+        } catch {}
+    }
+
+    // 4. Patch pe TOATE elementele din pagină
+    document.querySelectorAll("*").forEach(patchElement);
+
+    // 5. Patch pe elementele noi (mutation observer)
+    new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            if (m.addedNodes) {
+                m.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) {
+                        patchElement(node);
+                        node.querySelectorAll?.("*").forEach(patchElement);
+                    }
+                });
+            }
+        }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+}
 export function apply() {
     initGifProtection();
+    initVideoProtection();
+    initAnimationBlocker();   // 🔥 ADĂUGAT ACUM
 }

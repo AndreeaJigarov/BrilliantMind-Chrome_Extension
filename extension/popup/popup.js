@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy", "simplify", "reader_mode"];
+    const modules = ["dyslexia", "adhd", "color_blindness", "epilepsy", "simplify", "reader_mode"];
     const checkboxes = Object.fromEntries(
         modules.map(id => [id, document.getElementById(id)])
     );
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function applySelection(selected, isChecked) {
-    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy", "simplify", "reader_mode"];
+    const modules = ["dyslexia", "adhd", "color_blindness", "epilepsy", "simplify", "reader_mode"];
 
     if (isChecked) {
         // Turn off all other checkboxes

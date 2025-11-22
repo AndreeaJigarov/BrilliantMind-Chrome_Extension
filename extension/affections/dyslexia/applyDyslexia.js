@@ -81,6 +81,7 @@ function processAllHeadings(root = document) {
 // Preferences widget and helpers
 let _dyslexia_originalBodyStyles = null;
 let _dyslexia_prefsWidget = null;
+let _dyslexia_pageIsDark = false;
 
 // Safe storage wrapper to avoid crashes when chrome.storage isn't available
 const storage = {
@@ -154,6 +155,17 @@ function isColorCloseToWhite(color) {
     // compute relative luminance
     const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
     return lum > 0.95;
+}
+
+function isColorDark(color) {
+    if (!color) return false;
+    let rgb = null;
+    if (typeof color === 'string' && color.startsWith('#')) rgb = hexToRgb(color);
+    else if (typeof color === 'string' && color.startsWith('rgb')) rgb = rgbStringToRgb(color);
+    if (!rgb) return false;
+    const { r, g, b } = rgb;
+    const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return lum < 0.15;
 }
 
 function createDyslexiaPrefsWidget() {
@@ -319,23 +331,29 @@ export function apply(options = {}) {
 
     try {
         const body = document.body;
+        // detect whether the page is already using a dark background so we avoid overwriting it automatically
+        const comp = window.getComputedStyle(body);
+        const currentBg = comp && comp.backgroundColor ? comp.backgroundColor.trim() : '';
+        _dyslexia_pageIsDark = isColorDark(currentBg);
+
         let chosen = null;
         if (bgColor && typeof bgColor === 'string') chosen = bgColor;
         else if (bgName && presets[bgName]) chosen = presets[bgName];
 
-        const comp = window.getComputedStyle(body);
-        const currentBg = comp && comp.backgroundColor ? comp.backgroundColor.trim() : '';
-
+        // If an explicit choice was provided (via options or user action), apply it.
+        // Otherwise only auto-apply a gentle off-white when the page is light (not dark).
         if (chosen) {
             _dyslexia_originalBodyStyles = { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
             body.style.backgroundColor = chosen;
             body.style.color = body.style.color || '#111111';
+            try { document.documentElement.style.setProperty('--dyslexia-bg', chosen); } catch (e) {}
         } else {
-            // If the page background is white-ish, apply the gentle cream preset
-            if (isColorCloseToWhite(currentBg)) {
+            // If the page background is white-ish and not dark, apply the gentle cream preset
+            if (!_dyslexia_pageIsDark && isColorCloseToWhite(currentBg)) {
                 _dyslexia_originalBodyStyles = { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
                 body.style.backgroundColor = body.style.backgroundColor || presets.offWhite;
                 body.style.color = body.style.color || '#111111';
+                try { document.documentElement.style.setProperty('--dyslexia-bg', body.style.backgroundColor || presets.offWhite); } catch (e) {}
             }
         }
     } catch (e) {

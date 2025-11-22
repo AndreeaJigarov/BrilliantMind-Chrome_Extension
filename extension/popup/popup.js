@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy", "simplify"];
+    const modules = ["base", "dyslexia", "adhd", "color_blindness", "epilepsy", "simplify", "reader_mode"];
     const checkboxes = Object.fromEntries(
         modules.map(id => [id, document.getElementById(id)])
     );

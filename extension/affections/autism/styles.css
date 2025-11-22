@@ -82,7 +82,7 @@
 .autism-hide-extras .site-tools,
 .autism-hide-extras .search,
 .autism-hide-extras .searchbox,
-.autism-hide-extras .infobox,
+/* .autism-hide-extras .infobox, */
 .autism-hide-extras .mw-head,
 .autism-hide-extras .portal,
 .autism-hide-extras .mw-editsection,
@@ -114,9 +114,12 @@
 .autism-vertical-layout #mw-content-text {
 	display: block !important;
 	width: 100% !important;
-	max-width: 900px !important;
-	margin: 18px auto !important;
-	padding: 12px 18px !important;
+	/* narrower, more readable measure */
+	max-width: 760px !important;
+	margin: 28px auto !important;
+	padding: 20px 28px !important;
+	background: rgba(255,255,255,0.01) !important;
+	border-radius: 6px !important;
 }
 
 .autism-vertical-layout main > *,
@@ -124,7 +127,7 @@
 .autism-vertical-layout #content > * {
 	display: block !important;
 	width: 100% !important;
-	margin: 14px 0 !important;
+	margin: 22px 0 !important;
 	padding: 0 !important;
 }
 
@@ -138,9 +141,9 @@
 .autism-vertical-layout p,
 .autism-vertical-layout li,
 .autism-vertical-layout blockquote {
-	font-size: 18px !important;
-	line-height: 1.6 !important;
-	margin: 10px 0 !important;
+	font-size: 20px !important;
+	line-height: 1.9 !important;
+	margin: 14px 0 !important;
 }
 
 .autism-vertical-layout img {
@@ -148,7 +151,7 @@
 	float: none !important;
 	clear: both !important;
 	max-width: 100% !important;
-	margin: 12px auto !important;
+	margin: 18px auto !important;
 	height: auto !important;
 }
 
@@ -159,7 +162,7 @@
 	float: none !important;
 	clear: both !important;
 	width: 100% !important;
-	margin: 12px 0 !important;
+	margin: 18px 0 !important;
 }
 
 /* Override common float/align utility classes used by websites */
@@ -172,7 +175,7 @@
 	float: none !important;
 	display: block !important;
 	width: 100% !important;
-	margin: 12px 0 !important;
+	margin: 18px 0 !important;
 }
 
 /* Ensure paragraphs don't allow text wrapping around images */
@@ -188,7 +191,7 @@
 	display: block !important;
 	width: auto !important;
 	max-width: 100% !important;
-	margin: 6px 0 14px 0 !important;
+	margin: 8px 0 18px 0 !important;
 	white-space: normal !important;
 	writing-mode: horizontal-tb !important;
 	text-orientation: mixed !important;
@@ -196,7 +199,9 @@
 	float: none !important;
 	clear: none !important;
 	text-align: left !important;
-	line-height: 1.4 !important;
+	line-height: 1.5 !important;
+	font-size: 16px !important;
+	color: rgba(0,0,0,0.7) !important;
 }
 
 /* Ensure sections and generic divs stack vertically and remove multi-column/floats */
@@ -206,7 +211,7 @@
 	width: 100% !important;
 	float: none !important;
 	clear: both !important;
-	margin: 12px 0 !important;
+	margin: 18px 0 !important;
 }
 
 /* Handle common column/grid utilities by forcing single-column flow */
@@ -221,15 +226,17 @@
 /* Make lists easier to scan by increasing spacing between items */
 .autism-vertical-layout ul,
 .autism-vertical-layout ol {
-	margin-left: 1.1em !important;
-	margin-bottom: 12px !important;
+	margin-left: 1.2em !important;
+	margin-bottom: 18px !important;
 }
 
 /* Ensure tables are full-width but readable; avoid horizontal overflow */
 .autism-vertical-layout table {
 	width: 100% !important;
 	table-layout: auto !important;
-	overflow: visible !important;
+	overflow: auto !important;
 	display: block !important;
+	margin: 18px 0 !important;
+	border-collapse: collapse !important;
 }
 

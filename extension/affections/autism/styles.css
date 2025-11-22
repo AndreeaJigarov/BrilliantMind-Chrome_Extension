@@ -145,8 +145,91 @@
 
 .autism-vertical-layout img {
 	display: block !important;
+	float: none !important;
+	clear: both !important;
 	max-width: 100% !important;
-	margin: 12px 0 !important;
+	margin: 12px auto !important;
 	height: auto !important;
+}
+
+/* Ensure pictures/figures do not float next to text */
+.autism-vertical-layout picture,
+.autism-vertical-layout figure {
+	display: block !important;
+	float: none !important;
+	clear: both !important;
+	width: 100% !important;
+	margin: 12px 0 !important;
+}
+
+/* Override common float/align utility classes used by websites */
+.autism-vertical-layout .alignleft,
+.autism-vertical-layout .alignright,
+.autism-vertical-layout .float-left,
+.autism-vertical-layout .float-right,
+.autism-vertical-layout .pull-left,
+.autism-vertical-layout .pull-right {
+	float: none !important;
+	display: block !important;
+	width: 100% !important;
+	margin: 12px 0 !important;
+}
+
+/* Ensure paragraphs don't allow text wrapping around images */
+.autism-vertical-layout p {
+	clear: both !important;
+}
+
+/* Ensure captions remain horizontal and legible */
+.autism-vertical-layout figcaption,
+.autism-vertical-layout .caption,
+.autism-vertical-layout .wp-caption-text,
+.autism-vertical-layout .figure-caption {
+	display: block !important;
+	width: auto !important;
+	max-width: 100% !important;
+	margin: 6px 0 14px 0 !important;
+	white-space: normal !important;
+	writing-mode: horizontal-tb !important;
+	text-orientation: mixed !important;
+	transform: none !important;
+	float: none !important;
+	clear: none !important;
+	text-align: left !important;
+	line-height: 1.4 !important;
+}
+
+/* Ensure sections and generic divs stack vertically and remove multi-column/floats */
+.autism-vertical-layout section,
+.autism-vertical-layout div {
+	display: block !important;
+	width: 100% !important;
+	float: none !important;
+	clear: both !important;
+	margin: 12px 0 !important;
+}
+
+/* Handle common column/grid utilities by forcing single-column flow */
+.autism-vertical-layout [class*="col-"],
+.autism-vertical-layout [class*="column"],
+.autism-vertical-layout [class*="grid"],
+.autism-vertical-layout [class*="row"] {
+	display: block !important;
+	width: 100% !important;
+}
+
+/* Make lists easier to scan by increasing spacing between items */
+.autism-vertical-layout ul,
+.autism-vertical-layout ol {
+	margin-left: 1.1em !important;
+	margin-bottom: 12px !important;
+}
+
+/* Ensure tables are full-width but readable; avoid horizontal overflow */
+.autism-vertical-layout table {
+	width: 100% !important;
+	table-layout: auto !important;
+	overflow: visible !important;
+	display: block !important;
 }
 

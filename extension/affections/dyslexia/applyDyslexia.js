@@ -7,111 +7,113 @@ function getRulerColor(bg, custom, isDark) {
     let delta = isDark ? 0.13 : -0.13;
     let c = adjustColorLightness(base, delta);
     // fallback
-    function createDyslexiaPrefsWidget() {
-        if (_dyslexia_prefsWidget) return;
-        const widget = document.createElement('div');
-        widget.id = 'dyslexia-pref-widget';
-        widget.innerHTML = `
-            <button class="dyslexia-pref-close">×</button>
-            <div class="dyslexia-pref-section">
-                <h3>Background</h3>
-                <div class="dyslexia-pref-swatches" id="bg-swatches"></div>
-            </div>
-            <div class="dyslexia-pref-section">
-                <h3>Reading Ruler</h3>
-                <label style="display:block;margin:8px 0;">
-                    <input type="checkbox" id="ruler-toggle"> Enable Reading Ruler
-                </label>
-                <div class="dyslexia-pref-swatches" id="ruler-swatches"></div>
-                <div class="dyslexia-pref-instructions">Click any paragraph to select it. Use ↑/↓ on your keyboard to move the highlight.</div>
-            </div>
-        `;
-        // Background swatches
-        const bgColors = {
-            offWhite: '#F5F2EB',
-            softCream: '#F9F4DB',
-            softGrayBlue: '#B4C3CD',
-            sageGrayGreen: '#B8C4B6',
-            pastelYellow: '#fffef0'
-        };
-        const bgContainer = widget.querySelector('#bg-swatches');
-        Object.entries(bgColors).forEach(([name, color]) => {
-            const s = document.createElement('button');
-            s.className = 'dyslexia-pref-swatch';
-            s.style.backgroundColor = color;
-            s.title = name;
-            s.onclick = () => applyBackgroundChoice(name, color);
-            bgContainer.appendChild(s);
-        });
-        // Ruler swatches
-        const rulerColors = {
-            pink: '#FFE4E1',
-            yellow: '#FFFACD',
-            blue: '#ADD8E6',
-            green: '#90EE90',
-            black: '#000000'
-        };
-        const rulerContainer = widget.querySelector('#ruler-swatches');
-        const toggle = widget.querySelector('#ruler-toggle');
-        Object.entries(rulerColors).forEach(([_, color]) => {
-            const s = document.createElement('button');
-            s.className = 'dyslexia-pref-swatch';
-            s.style.backgroundColor = color;
-            s.onclick = () => {
-                lastCustomRulerColor = color;
-                if (_dyslexia_rulerEnabled) enableReadingRuler(color);
-                chrome.storage?.local?.set({ dyslexiaPrefs: { rulerColor: color } });
-            };
-            rulerContainer.appendChild(s);
-        });
-        toggle.onchange = () => {
-            if (toggle.checked) {
-                enableReadingRuler(lastCustomRulerColor);
-            } else {
-                disableReadingRuler();
-            }
-            chrome.storage?.local?.set({ dyslexiaPrefs: { rulerEnabled: toggle.checked } });
-        };
-        widget.querySelector('.dyslexia-pref-close').onclick = () => widget.remove();
-        // CSS-ul widgetului
-        const css = `
-            #dyslexia-pref-widget {
-                position: fixed; bottom: 20px; right: 20px; width: 260px;
-                background: rgba(255,255,255,0.97); border: 1px solid #ccc;
-                border-radius: 10px; padding: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                font-family: Arial, sans-serif; font-size: 14px; z-index: 2147483647;
-            }
-            #dyslexia-pref-widget h3 { margin: 0 0 8px 0; font-size: 15px; }
-            .dyslexia-pref-section { margin-bottom: 18px; }
-            .dyslexia-pref-swatches { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-            .dyslexia-pref-swatch {
-                width: 32px; height: 32px; border: 2px solid #fff;
-                border-radius: 6px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            }
-            .dyslexia-pref-swatch:hover { transform: scale(1.15); }
-            .dyslexia-pref-close {
-                position: absolute; top: 6px; right: 10px; background:none; border:none;
-                font-size: 20px; cursor:pointer; color:#666;
-            }
-            .dyslexia-pref-instructions {
-                font-size: 12px; color: #555; margin-top: 6px; margin-bottom: 0;
-            }
-        `;
-        injectStyle(css, 'dyslexia-pref-widget-style');
-        document.body.appendChild(widget);
-        _dyslexia_prefsWidget = widget;
-        // Încarcă preferințele salvate
-        chrome.storage?.local?.get(['dyslexiaPrefs'], (res) => {
-            const p = res.dyslexiaPrefs || {};
-            if (p.rulerEnabled) {
-                toggle.checked = true;
-                lastCustomRulerColor = p.rulerColor || null;
-                enableReadingRuler(lastCustomRulerColor);
-            }
-            if (p.bgName && bgColors[p.bgName]) applyBackgroundChoice(p.bgName, bgColors[p.bgName]);
-            else if (p.bgColor) applyBackgroundChoice('custom', p.bgColor);
-        });
+    if (!c) c = isDark ? '#444' : '#e0e0d0';
+    return c;
+}
+
+// Highlight the current paragraph
+function showReadingRuler(index, color) {
+    if (!_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
+    if (_dyslexia_currentParaIndex >= 0 && _dyslexia_currentParaIndex < _dyslexia_paragraphs.length) {
+        _dyslexia_paragraphs[_dyslexia_currentParaIndex].classList.remove('dyslexia-ruler-active');
+        _dyslexia_paragraphs[_dyslexia_currentParaIndex].style.background = '';
     }
+    _dyslexia_currentParaIndex = index;
+    const para = _dyslexia_paragraphs[index];
+    if (para) {
+        para.classList.add('dyslexia-ruler-active');
+        para.style.background = color;
+        para.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+}
+
+function clearReadingRuler() {
+    if (!_dyslexia_paragraphs) return;
+    _dyslexia_paragraphs.forEach(p => {
+        p.classList.remove('dyslexia-ruler-active');
+        p.style.background = '';
+    });
+    _dyslexia_currentParaIndex = -1;
+}
+
+function enableReadingRuler(customColor) {
+    _dyslexia_rulerEnabled = true;
+    // Find all visible paragraphs in the main content
+    _dyslexia_paragraphs = Array.from(document.querySelectorAll('.dyslexia-friendly p, .dyslexia-friendly li, .dyslexia-friendly blockquote'))
+        .filter(p => elementHasVisibleText(p));
+    if (!_dyslexia_paragraphs.length) return;
+    // Use current background as base
+    let bg = window.getComputedStyle(document.body).backgroundColor;
+    let color = getRulerColor(bg, customColor, _dyslexia_pageIsDark);
+    _dyslexia_rulerColor = color;
+    showReadingRuler(0, color);
+}
+
+function disableReadingRuler() {
+    _dyslexia_rulerEnabled = false;
+    clearReadingRuler();
+    _dyslexia_paragraphs = null;
+}
+
+function moveRuler(delta) {
+    if (!_dyslexia_rulerEnabled || !_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
+    let idx = _dyslexia_currentParaIndex + delta;
+    if (idx < 0) idx = 0;
+    if (idx >= _dyslexia_paragraphs.length) idx = _dyslexia_paragraphs.length - 1;
+    showReadingRuler(idx, _dyslexia_rulerColor);
+}
+// Clean, single-file implementation for dyslexia-friendly presentation
+function injectLink(href) {
+    const existing = document.querySelector(`link[href="${href}"]`);
+    if (existing) return existing;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+    return link;
+}
+
+function injectStyle(css, id) {
+    if (id) {
+        const existing = document.getElementById(id);
+        if (existing) return existing;
+    }
+    const style = document.createElement('style');
+    if (id) style.id = id;
+    style.textContent = css;
+    document.head.appendChild(style);
+    return style;
+}
+
+// Heuristic: detect mostly ALL-CAPS string
+function isMostlyAllCaps(s) {
+    const letters = s.match(/[A-Za-z]/g);
+    if (!letters || letters.length < 3) return false;
+    const upper = letters.filter(c => c === c.toUpperCase()).length;
+    return (upper / letters.length) >= 0.75;
+}
+
+// Preserve acronyms (e.g. "NASA") by replacing them with tokens, returning { text, acronyms }
+function replaceAcronymsWithTokens(s) {
+    const acronyms = [];
+    let idx = 0;
+    const text = s.replace(/\b([A-Z]{2,})\b/g, function (m) {
+        acronyms.push(m);
+        return `__ACR${idx++}__`;
+    });
+    return { text, acronyms };
+}
+
+function restoreAcronymsFromTokens(s, acronyms) {
+    let out = s;
+    acronyms.forEach((a, i) => {
+        out = out.replace(new RegExp(`__ACR${i}__`, 'g'), a);
+    });
+    return out;
+}
+
+function toSentenceCasePreservingAcronyms(s) {
+    const { text, acronyms } = replaceAcronymsWithTokens(s);
     const lowered = text.toLowerCase();
     const sentence = lowered.replace(/(^|\.|\?|\!|\n)\s*([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
     return restoreAcronymsFromTokens(sentence, acronyms);

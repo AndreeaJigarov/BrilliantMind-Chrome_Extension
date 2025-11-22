@@ -1,4 +1,8 @@
 // Compute a ruler color with contrast to background
+ // @param {string|null} bg - The page background color (hex or rgb string).
+ // @param {string|null} custom - A custom ruler color chosen by the user.
+ // @param {boolean} isDark - Whether the detected page theme is dark.
+ // @returns {string} A hex color string for the ruler.
 function getRulerColor(bg, custom, isDark) {
     if (custom) return custom;
     // bg: string (hex or rgb)
@@ -11,7 +15,9 @@ function getRulerColor(bg, custom, isDark) {
     return c;
 }
 
-// Highlight the current paragraph
+// Highlight the current paragraph at the given index using the reading ruler color.
+ // @param {number} index - Index of the paragraph to activate.
+ // @param {string} color - Background color applied to the active paragraph.
 function showReadingRuler(index, color) {
     if (!_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
     if (_dyslexia_currentParaIndex >= 0 && _dyslexia_currentParaIndex < _dyslexia_paragraphs.length) {
@@ -27,6 +33,7 @@ function showReadingRuler(index, color) {
     }
 }
 
+//Removes the reading ruler highlight from all tracked paragraphs.
 function clearReadingRuler() {
     if (!_dyslexia_paragraphs) return;
     _dyslexia_paragraphs.forEach(p => {
@@ -36,6 +43,8 @@ function clearReadingRuler() {
     _dyslexia_currentParaIndex = -1;
 }
 
+//Enables the reading ruler feature and initializes paragraph tracking.
+// @param {string|null} customColor - Optional custom ruler highlight color.
 function enableReadingRuler(customColor) {
     _dyslexia_rulerEnabled = true;
     // Find all visible paragraphs in the main content
@@ -49,6 +58,7 @@ function enableReadingRuler(customColor) {
     showReadingRuler(0, color);
 }
 
+//Disables the reading ruler and clears all highlights.
 function disableReadingRuler() {
     _dyslexia_rulerEnabled = false;
     clearReadingRuler();
@@ -80,7 +90,8 @@ document.addEventListener(
 );
 
 
-
+//Moves the reading ruler by a delta (e.g., -1 for previous, +1 for next).
+//@param {number} delta - Number of steps to move (positive or negative).
 function moveRuler(delta) {
     if (!_dyslexia_rulerEnabled || !_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
     let idx = _dyslexia_currentParaIndex + delta;
@@ -89,6 +100,9 @@ function moveRuler(delta) {
     showReadingRuler(idx, _dyslexia_rulerColor);
 }
 // Clean, single-file implementation for dyslexia-friendly presentation
+//Injects a stylesheet <link> into the document head if not already present.
+//@param {string} href - URL of the stylesheet.
+//@returns {HTMLLinkElement} The injected or existing link element.
 function injectLink(href) {
     const existing = document.querySelector(`link[href="${href}"]`);
     if (existing) return existing;
@@ -99,6 +113,11 @@ function injectLink(href) {
     return link;
 }
 
+//Injects a <style> element with given CSS into the document head, optionally with an ID to avoid duplicates.
+//Adds a <style> tag to the document head, optionally avoiding duplicates.
+//@param {string} css - Raw CSS to insert.
+//@param {string} [id] - Optional element ID to prevent duplication.
+//@returns {HTMLStyleElement} The injected or existing style element.
 function injectStyle(css, id) {
     if (id) {
         const existing = document.getElementById(id);
@@ -111,7 +130,11 @@ function injectStyle(css, id) {
     return style;
 }
 
+
 // Heuristic: detect mostly ALL-CAPS string
+// Determines whether text contains mostly uppercase letters.
+// @param {string} s - Input text.
+// @returns {boolean} True if at least 75% of letters are uppercase.
 function isMostlyAllCaps(s) {
     const letters = s.match(/[A-Za-z]/g);
     if (!letters || letters.length < 3) return false;
@@ -120,6 +143,9 @@ function isMostlyAllCaps(s) {
 }
 
 // Preserve acronyms (e.g. "NASA") by replacing them with tokens, returning { text, acronyms }
+
+// @param {string} s - Input text.
+// @returns {{ text: string, acronyms: string[] }} Object with text and acronyms array.
 function replaceAcronymsWithTokens(s) {
     const acronyms = [];
     let idx = 0;
@@ -130,6 +156,10 @@ function replaceAcronymsWithTokens(s) {
     return { text, acronyms };
 }
 
+// Restore acronyms from tokens in the text
+// @param {string} s - Input text with tokens.
+// @param {string[]} acronyms - Array of original acronyms.
+// @returns {string} Text with acronyms restored.
 function restoreAcronymsFromTokens(s, acronyms) {
     let out = s;
     acronyms.forEach((a, i) => {
@@ -138,6 +168,9 @@ function restoreAcronymsFromTokens(s, acronyms) {
     return out;
 }
 
+// Convert string to sentence case while preserving acronyms
+// @param {string} s - Input text.
+// @returns {string} Text converted to sentence case with acronyms preserved.
 function toSentenceCasePreservingAcronyms(s) {
     const { text, acronyms } = replaceAcronymsWithTokens(s);
     const lowered = text.toLowerCase();
@@ -145,6 +178,9 @@ function toSentenceCasePreservingAcronyms(s) {
     return restoreAcronymsFromTokens(sentence, acronyms);
 }
 
+// Converts headings that are mostly all-caps into sentence case.
+// Handles special cases where headings overlap images by adding an alternative caption.
+// @param {HTMLElement} el - Heading element.
 function convertHeadingTextNodesToSentenceCaseIfNeeded(el) {
     // Only operate on text node children (avoid changing interactive elements)
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
@@ -198,6 +234,9 @@ function convertHeadingTextNodesToSentenceCaseIfNeeded(el) {
 }
 
 // Returns true if element's bounding box overlaps an image or an element with a background-image
+// Detects whether an element overlaps an image, input, or any element with visible media.
+// @param {HTMLElement} el - Element to test.
+// @returns {boolean} True if overlapping media.
 function doesElementOverlapMedia(el) {
     try {
         const rect = el.getBoundingClientRect();
@@ -229,6 +268,9 @@ function doesElementOverlapMedia(el) {
     return false;
 }
 
+//Determines whether an element contains visible, readable text.
+// @param {Element} node - DOM node to test.
+// @returns {boolean} True if element contains visible text.
 function elementHasVisibleText(node) {
     try {
         if (!node || node.nodeType !== 1) return false;
@@ -245,6 +287,9 @@ function elementHasVisibleText(node) {
 }
 
 // Apply chosen background to many light, text-containing areas (helps sites like Wikipedia)
+// Applies a selected background color to major text-content areas,
+// preserving original styles for later restoration.
+// @param {string} chosen - Background color (hex or rgb).
 function applyBackgroundToTextAreas(chosen) {
     try {
         if (!chosen) return;
@@ -279,7 +324,10 @@ function applyBackgroundToTextAreas(chosen) {
     } catch (e) { console.warn('applyBackgroundToTextAreas failed', e); }
 }
 
+
 // Apply background to form controls (inputs, textareas, selects and editable regions)
+// Applies background and text color to inputs, textareas, selects, and editable areas.
+// @param {string} chosen - Background color.
 function applyBackgroundToFormControls(chosen) {
     try {
         if (!chosen) return;
@@ -321,6 +369,9 @@ function applyBackgroundToFormControls(chosen) {
     } catch (e) { console.warn('applyBackgroundToFormControls failed', e); }
 }
 
+//Processes all headings in `.dyslexia-friendly` container(s) and
+// Converts all headings in `.dyslexia-friendly` container(s) to sentence case when appropriate.
+// @param {Document|HTMLElement} [root=document] - Root container to scan.
 function processAllHeadings(root = document) {
     const selector = '.dyslexia-friendly h1, .dyslexia-friendly h2, .dyslexia-friendly h3, .dyslexia-friendly h4, .dyslexia-friendly h5, .dyslexia-friendly h6';
     const headings = root.querySelectorAll(selector);
@@ -356,6 +407,9 @@ const storage = {
     }
 };
 
+// Applies the selected background theme and propagates it to all text areas and form elements.
+//  @param {string} name - Preset name (e.g., "softCream" or "custom").
+//  @param {string} color - Actual background color string.
 function applyBackgroundChoice(name, color) {
     try {
         const body = document.body;
@@ -376,6 +430,9 @@ function applyBackgroundChoice(name, color) {
 }
 
 // Color parsing helpers - return {r,g,b} or null
+//Converts a hex color string into an {r,g,b} object.
+// @param {string} hex - Hex color (3 or 6 digits).
+// @returns {{r:number,g:number,b:number}|null}
 function hexToRgb(hex) {
     if (!hex) return null;
     const h = hex.replace('#', '').trim();
@@ -394,6 +451,9 @@ function hexToRgb(hex) {
     return null;
 }
 
+// Parses an rgb(...) or rgba(...) string into an RGB object.
+// @param {string} s - CSS color string.
+// @returns {{r:number,g:number,b:number}|null}
 function rgbStringToRgb(s) {
     if (!s || typeof s !== 'string') return null;
     const m = s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
@@ -401,6 +461,9 @@ function rgbStringToRgb(s) {
     return { r: parseInt(m[1], 10), g: parseInt(m[2], 10), b: parseInt(m[3], 10) };
 }
 
+// Converts an RGB object to a hex color string.
+// @param {{r:number,g:number,b:number}} rgb
+// @returns {string|null}
 function rgbToHex(rgb) {
     if (!rgb) return null;
     const r = (rgb.r || 0) & 255;
@@ -409,6 +472,9 @@ function rgbToHex(rgb) {
     return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
+// Converts RGB to HSL.
+// @param {{r:number,g:number,b:number}} rgb
+// @returns {{h:number,s:number,l:number}}
 function rgbToHsl(rgb) {
     let r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -426,6 +492,9 @@ function rgbToHsl(rgb) {
     return { h: h, s: s, l: l };
 }
 
+// Converts an HSL color object to RGB.
+// @param {{h:number,s:number,l:number}} hsl
+// @returns {{r:number,g:number,b:number}}
 function hslToRgb(hsl) {
     const h = hsl.h, s = hsl.s, l = hsl.l;
     function hue2rgb(p, q, t) {
@@ -449,6 +518,10 @@ function hslToRgb(hsl) {
     return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 }
 
+// Adjusts a color's lightness by a given delta using HSL.
+// @param {string} colorStr - Hex or rgb string.
+// @param {number} delta - Lightness adjustment value (–1 to +1).
+// @returns {string|null} Adjusted hex color.
 function adjustColorLightness(colorStr, delta) {
     if (!colorStr) return null;
     let rgb = null;
@@ -461,6 +534,8 @@ function adjustColorLightness(colorStr, delta) {
     return rgbToHex(out);
 }
 
+// Reads the computed foreground color from CSS variables or body styles.
+// @returns {string|null} Computed color string.
 function getComputedFgColor() {
     try {
         const root = document.documentElement;
@@ -473,6 +548,9 @@ function getComputedFgColor() {
     return null;
 }
 
+// Determines whether a color is effectively "white" using channel intensity and luminance.
+// @param {string} color - Hex or rgb color.
+// @returns {boolean}
 function isColorCloseToWhite(color) {
     if (!color) return false;
     let rgb = null;
@@ -487,6 +565,9 @@ function isColorCloseToWhite(color) {
     return lum > 0.95;
 }
 
+// Determines whether a color is dark based on luminance.
+// @param {string} color - Hex or rgb string.
+// @returns {boolean}
 function isColorDark(color) {
     if (!color) return false;
     let rgb = null;
@@ -498,6 +579,9 @@ function isColorDark(color) {
     return lum < 0.15;
 }
 
+// Creates and inserts the floating dyslexia preferences widget into the page.
+// Handles background themes and reading ruler controls.
+// @returns {HTMLElement} The widget root element.
 function createDyslexiaPrefsWidget() {
     if (_dyslexia_prefsWidget) return _dyslexia_prefsWidget;
     const widget = document.createElement('div');
@@ -682,6 +766,11 @@ function createDyslexiaPrefsWidget() {
     return widget;
 }
 
+// Main entry point. Applies dyslexia-friendly formatting, fonts, and UI.
+// Includes guard against multiple applications.
+// @param {Object} options
+// @param {number} [options.fontSizePx=16] - Base font size.
+// @param {boolean} [options.force=false] - Whether to bypass idempotency guard.
 export function apply(options = {}) {
     // Idempotent guard: avoid double-application when module is imported/executed multiple times
     if (window.__DYSLEXIA_MODE_APPLIED && !options.force) return;
@@ -805,6 +894,18 @@ export function apply(options = {}) {
     try { createDyslexiaPrefsWidget(); } catch (e) { console.warn('Dyslexia mode: prefs widget creation failed', e); }
 }
 
+/**
+ * Disables Dyslexia-Friendly Mode and restores original page styles.
+ *
+ * - Removes the `.dyslexia-friendly` class and all injected style/link elements.
+ * - Restores original heading text and removes alternate heading elements.
+ * - Restores saved body/background/text colors.
+ * - Reverts per-element background/text overrides (`data-dyslexia-orig-*`).
+ * - Removes the preferences widget.
+ * - Resets `window.__DYSLEXIA_MODE_APPLIED`.
+ *
+ * All operations are safely wrapped in try/catch blocks.
+ */
 export function remove() {
     document.documentElement.classList.remove('dyslexia-friendly');
     // restore any headings we altered to avoid overlays and remove alternates

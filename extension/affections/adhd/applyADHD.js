@@ -1,4 +1,5 @@
 export function apply() {
+    // --- Inject CSS styles ---
     const style = document.createElement("style");
     style.id = "simplify-style";
     style.textContent = `

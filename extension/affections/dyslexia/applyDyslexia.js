@@ -197,7 +197,7 @@ function convertHeadingTextNodesToSentenceCaseIfNeeded(el) {
     }
 }
 
-// Returns true if element's bounding box overlaps an <img> or an element with a background-image
+// Returns true if element's bounding box overlaps an image or an element with a background-image
 function doesElementOverlapMedia(el) {
     try {
         const rect = el.getBoundingClientRect();

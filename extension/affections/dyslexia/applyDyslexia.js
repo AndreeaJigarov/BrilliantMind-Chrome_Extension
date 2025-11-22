@@ -104,14 +104,56 @@ function applyBackgroundChoice(name, color) {
     try {
         const body = document.body;
         _dyslexia_originalBodyStyles = _dyslexia_originalBodyStyles || { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
-        body.style.backgroundColor = color;
+        // Apply exactly the color the user chose (do not remap custom colors)
+        const chosen = color;
+        body.style.backgroundColor = chosen;
         body.style.color = body.style.color || '#111111';
         // expose CSS variables so inputs and other controls can inherit
-        try { document.documentElement.style.setProperty('--dyslexia-bg', color); } catch (e) {}
+        try { document.documentElement.style.setProperty('--dyslexia-bg', chosen); } catch (e) {}
         try { document.documentElement.style.setProperty('--dyslexia-fg', body.style.color || '#111111'); } catch (e) {}
     } catch (e) {
         console.warn('applyBackgroundChoice failed', e);
     }
+}
+
+// Color parsing helpers - return {r,g,b} or null
+function hexToRgb(hex) {
+    if (!hex) return null;
+    const h = hex.replace('#', '').trim();
+    if (h.length === 3) {
+        const r = parseInt(h[0] + h[0], 16);
+        const g = parseInt(h[1] + h[1], 16);
+        const b = parseInt(h[2] + h[2], 16);
+        return { r, g, b };
+    }
+    if (h.length === 6) {
+        const r = parseInt(h.slice(0, 2), 16);
+        const g = parseInt(h.slice(2, 4), 16);
+        const b = parseInt(h.slice(4, 6), 16);
+        return { r, g, b };
+    }
+    return null;
+}
+
+function rgbStringToRgb(s) {
+    if (!s || typeof s !== 'string') return null;
+    const m = s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (!m) return null;
+    return { r: parseInt(m[1], 10), g: parseInt(m[2], 10), b: parseInt(m[3], 10) };
+}
+
+function isColorCloseToWhite(color) {
+    if (!color) return false;
+    let rgb = null;
+    if (color.startsWith('#')) rgb = hexToRgb(color);
+    else if (color.startsWith('rgb')) rgb = rgbStringToRgb(color);
+    if (!rgb) return false;
+    const { r, g, b } = rgb;
+    // If all channels are very high (near 255) consider it white-ish
+    if (r >= 245 && g >= 245 && b >= 245) return true;
+    // compute relative luminance
+    const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return lum > 0.95;
 }
 
 function createDyslexiaPrefsWidget() {
@@ -261,10 +303,13 @@ export function apply(options = {}) {
 
     injectStyle(css, 'dyslexia-friendly-style');
 
-    // Link styling
-    const linkCss = `.dyslexia-friendly a { text-decoration: underline !important; text-underline-offset: 2px !important; text-decoration-thickness: 1px !important; color: rgba(26,115,232,0.9) !important; }
-.dyslexia-friendly a:visited { color: rgba(26,115,232,0.7) !important; }
-.dyslexia-friendly a:hover, .dyslexia-friendly a:focus { box-shadow: 0 0 0 3px rgba(26,115,232,0.08) !important; outline:none !important; }`;
+    // Link styling: muted, underlined to reduce distraction
+    const linkCss = `.dyslexia-friendly a { text-decoration: underline !important; text-underline-offset: 2px !important; text-decoration-thickness: 1px !important; color: var(--dyslexia-link, #2f4f4f) !important; }
+.dyslexia-friendly a:visited { color: rgba(47,79,79,0.8) !important; }
+.dyslexia-friendly a:hover, .dyslexia-friendly a:focus { box-shadow: 0 0 0 3px rgba(47,79,79,0.06) !important; outline:none !important; }
+/* ensure widget swatches keep inline background by giving them higher specificity */
+#dyslexia-pref-widget .dyslexia-pref-swatch { background-clip: padding-box !important; }
+`;
     injectStyle(linkCss, 'dyslexia-friendly-links');
 
     // Apply background preference (options or stored)
@@ -286,7 +331,8 @@ export function apply(options = {}) {
             body.style.backgroundColor = chosen;
             body.style.color = body.style.color || '#111111';
         } else {
-            if (currentBg === 'rgb(255, 255, 255)' || currentBg === 'rgba(255, 255, 255, 1)' || currentBg === '#ffffff' || currentBg === 'white') {
+            // If the page background is white-ish, apply the gentle cream preset
+            if (isColorCloseToWhite(currentBg)) {
                 _dyslexia_originalBodyStyles = { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
                 body.style.backgroundColor = body.style.backgroundColor || presets.cream;
                 body.style.color = body.style.color || '#111111';

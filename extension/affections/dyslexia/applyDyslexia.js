@@ -124,13 +124,63 @@ function doesElementOverlapMedia(el) {
             const elems = document.elementsFromPoint(p.x, p.y);
             for (let node of elems) {
                 if (el.contains(node)) continue; // ignore self or children
-                if (node.tagName && node.tagName.toLowerCase() === 'img') return true;
+                if (node.tagName) {
+                    const t = node.tagName.toLowerCase();
+                    if (t === 'img') return true;
+                    if (t === 'input' || t === 'textarea' || t === 'select' || node.isContentEditable) return true;
+                }
                 const comp = window.getComputedStyle(node);
                 if (comp && comp.backgroundImage && comp.backgroundImage !== 'none') return true;
+                // if the element at this point contains visible text, consider it media/textbox we shouldn't overlay
+                if (elementHasVisibleText(node)) return true;
             }
         }
     } catch (e) {}
     return false;
+}
+
+function elementHasVisibleText(node) {
+    try {
+        if (!node || node.nodeType !== 1) return false;
+        // skip controls and our widget
+        const tag = node.tagName.toLowerCase();
+        if (tag === 'button' || tag === 'input' || tag === 'textarea' || tag === 'select') return false;
+        if (node.id === 'dyslexia-pref-widget' || node.closest && node.closest('#dyslexia-pref-widget')) return false;
+        const txt = (node.innerText || node.textContent || '').trim();
+        if (!txt || txt.length < 3) return false;
+        const comp = window.getComputedStyle(node);
+        if (!comp || comp.visibility === 'hidden' || comp.display === 'none' || comp.opacity === '0') return false;
+        return true;
+    } catch (e) { return false; }
+}
+
+// Apply chosen background to many light, text-containing areas (helps sites like Wikipedia)
+function applyBackgroundToTextAreas(chosen) {
+    try {
+        if (!chosen) return;
+        // track modified elements via data attributes so we can restore them later
+        const candidates = document.querySelectorAll('article, main, section, .mw-body, .mw-parser-output, .content, p, div');
+        candidates.forEach(el => {
+            try {
+                if (!el || !(el instanceof Element)) return;
+                if (el.id === 'dyslexia-pref-widget' || el.closest && el.closest('#dyslexia-pref-widget')) return;
+                const comp = window.getComputedStyle(el);
+                if (!comp) return;
+                const bg = comp.backgroundColor || '';
+                if (!bg) return;
+                if (!isColorCloseToWhite(bg)) return;
+                // require that this element contains visible text
+                if (!elementHasVisibleText(el)) return;
+                // store original inline styles if not already stored
+                if (!el.hasAttribute('data-dyslexia-orig-bg')) el.setAttribute('data-dyslexia-orig-bg', el.style.backgroundColor || '');
+                if (!el.hasAttribute('data-dyslexia-orig-color')) el.setAttribute('data-dyslexia-orig-color', el.style.color || '');
+                // apply chosen background and readable foreground
+                el.style.backgroundColor = chosen;
+                el.style.color = el.style.color || '#111111';
+            } catch (e) {}
+        });
+        try { document.documentElement.style.setProperty('--dyslexia-bg', chosen); } catch (e) {}
+    } catch (e) { console.warn('applyBackgroundToTextAreas failed', e); }
 }
 
 function processAllHeadings(root = document) {
@@ -413,13 +463,17 @@ export function apply(options = {}) {
             body.style.backgroundColor = chosen;
             body.style.color = body.style.color || '#111111';
             try { document.documentElement.style.setProperty('--dyslexia-bg', chosen); } catch (e) {}
+            // Apply to other light text-carrying areas (helps sites like Wikipedia where content sits in inner containers)
+            if (!_dyslexia_pageIsDark) applyBackgroundToTextAreas(chosen);
         } else {
             // If the page background is white-ish and not dark, apply the gentle cream preset
             if (!_dyslexia_pageIsDark && isColorCloseToWhite(currentBg)) {
                 _dyslexia_originalBodyStyles = { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
-                body.style.backgroundColor = body.style.backgroundColor || presets.offWhite;
+                const pick = body.style.backgroundColor || presets.offWhite;
+                body.style.backgroundColor = pick;
                 body.style.color = body.style.color || '#111111';
-                try { document.documentElement.style.setProperty('--dyslexia-bg', body.style.backgroundColor || presets.offWhite); } catch (e) {}
+                try { document.documentElement.style.setProperty('--dyslexia-bg', pick); } catch (e) {}
+                applyBackgroundToTextAreas(pick);
             }
         }
     } catch (e) {
@@ -463,6 +517,20 @@ export function remove() {
             _dyslexia_originalBodyStyles = null;
         }
     } catch (e) { console.warn('Dyslexia mode: failed to restore body styles', e); }
+
+    // restore any elements we applied background to
+    try {
+        document.querySelectorAll('[data-dyslexia-orig-bg]').forEach(el => {
+            try {
+                const origBg = el.getAttribute('data-dyslexia-orig-bg');
+                const origColor = el.getAttribute('data-dyslexia-orig-color');
+                el.style.backgroundColor = origBg || '';
+                el.style.color = origColor || '';
+                el.removeAttribute('data-dyslexia-orig-bg');
+                el.removeAttribute('data-dyslexia-orig-color');
+            } catch (e) {}
+        });
+    } catch (e) {}
 
     try {
         if (_dyslexia_prefsWidget) { _dyslexia_prefsWidget.remove(); _dyslexia_prefsWidget = null; }

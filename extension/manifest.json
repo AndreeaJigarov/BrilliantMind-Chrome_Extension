@@ -52,10 +52,7 @@
         "affections/reader_mode/*.js",
         "affections/reader_mode/*.css",
         "affections/autism/*.js",
-        "affections/autism/*.css"
-
-
-
+        "affections/autism/*.css",
         "affections/simplify/settings-popup.html",
         "affections/simplify/settings-popup.js",
         "api/*.js"

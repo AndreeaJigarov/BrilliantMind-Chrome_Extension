@@ -29,31 +29,23 @@ document.addEventListener("DOMContentLoaded", () => {
 function applySelection(selected, isChecked) {
     const modules = ["dyslexia", "adhd", "autism", "color_blindness", "epilepsy", "simplify", "reader_mode"];
 
+    // Turn off all other checkboxes when selecting one
     if (isChecked) {
-        // Turn off all other checkboxes
         modules.forEach(m => {
             if (m !== selected) {
                 const box = document.getElementById(m);
                 if (box) box.checked = false;
             }
         });
+    }
 
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
         const domain = new URL(tab.url).hostname;
         const key = "site_" + domain;
 
         if (isChecked) {
-            // Uncheck other boxes
-            modules.forEach(m => {
-                if (m !== selected) {
-                    const box = document.getElementById(m);
-                    if (box) box.checked = false;
-                }
-            });
-
-            // Save only THIS site’s module
+            // Save only THIS site's module
             chrome.storage.local.set({ [key]: [selected] }, reloadActiveTab);
-
         } else {
             // User unchecked → remove setting for this site
             chrome.storage.local.set({ [key]: [] }, reloadActiveTab);

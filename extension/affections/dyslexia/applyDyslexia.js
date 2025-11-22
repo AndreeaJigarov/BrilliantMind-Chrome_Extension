@@ -173,10 +173,10 @@ function createDyslexiaPrefsWidget() {
     widget.appendChild(desc);
 
     const presets = [
-        { id: 'cream', label: 'Cream', color: '#fffaf0' },
-        { id: 'pastelBlue', label: 'Blue', color: '#f0f8ff' },
-        { id: 'pastelGreen', label: 'Green', color: '#f4fff4' },
-        { id: 'pastelLavender', label: 'Lavender', color: '#faf0ff' }
+        { id: 'offWhite', label: 'Off-White', color: '#F5F2EB' },
+        { id: 'softCream', label: 'Soft Cream', color: '#F9F4DB' },
+        { id: 'softGrayBlue', label: 'Soft Gray-Blue', color: '#B4C3CD' },
+        { id: 'sageGrayGreen', label: 'Sage Gray-Green', color: '#B8C4B6' }
     ];
 
     const list = document.createElement('div');
@@ -249,7 +249,7 @@ function createDyslexiaPrefsWidget() {
     try {
         storage.get(['dyslexiaPrefs'], (res = {}) => {
             const stored = (res && res.dyslexiaPrefs) || {};
-            const presetsMap = { cream: '#fffaf0', pastelBlue: '#f0f8ff', pastelGreen: '#f4fff4', pastelLavender: '#faf0ff' };
+            const presetsMap = { offWhite: '#F5F2EB', softCream: '#F9F4DB', softGrayBlue: '#B4C3CD', sageGrayGreen: '#B8C4B6' };
             if (stored.bgColor) applyBackgroundChoice('custom', stored.bgColor);
             else if (stored.bgName && presetsMap[stored.bgName]) applyBackgroundChoice(stored.bgName, presetsMap[stored.bgName]);
         });
@@ -313,7 +313,7 @@ export function apply(options = {}) {
     injectStyle(linkCss, 'dyslexia-friendly-links');
 
     // Apply background preference (options or stored)
-    const presets = { cream: '#fffaf0', pastelBlue: '#f0f8ff', pastelGreen: '#f4fff4', pastelLavender: '#faf0ff', pastelYellow: '#fffef0' };
+    const presets = { offWhite: '#F5F2EB', softCream: '#F9F4DB', softGrayBlue: '#B4C3CD', sageGrayGreen: '#B8C4B6', pastelYellow: '#fffef0' };
     const bgName = options.bgName || options.bg || null;
     const bgColor = options.bgColor || null;
 
@@ -334,7 +334,7 @@ export function apply(options = {}) {
             // If the page background is white-ish, apply the gentle cream preset
             if (isColorCloseToWhite(currentBg)) {
                 _dyslexia_originalBodyStyles = { backgroundColor: body.style.backgroundColor || '', color: body.style.color || '' };
-                body.style.backgroundColor = body.style.backgroundColor || presets.cream;
+                body.style.backgroundColor = body.style.backgroundColor || presets.offWhite;
                 body.style.color = body.style.color || '#111111';
             }
         }

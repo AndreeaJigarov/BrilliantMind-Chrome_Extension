@@ -32,7 +32,7 @@ function showReadingRuler(index, color) {
         para.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
 }
-
+ 
 //Removes the reading ruler highlight from all tracked paragraphs.
 function clearReadingRuler() {
     if (!_dyslexia_paragraphs) return;

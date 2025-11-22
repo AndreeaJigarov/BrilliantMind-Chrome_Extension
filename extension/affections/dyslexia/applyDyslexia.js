@@ -451,13 +451,13 @@ export function apply(options = {}) {
         const comp = window.getComputedStyle(body);
         const currentBg = comp && comp.backgroundColor ? comp.backgroundColor.trim() : '';
         _dyslexia_pageIsDark = isColorDark(currentBg);
-        // If page is dark, choose a lighter link color variable so links remain readable
-        if (_dyslexia_pageIsDark) {
-            try {
-                // muted but readable cyan-ish link on dark background
-                document.documentElement.style.setProperty('--dyslexia-link', '#9ad0ff');
-            } catch (e) {}
-        }
+        // Choose appropriate link color variable: darker for light pages, lighter for dark pages
+        try {
+            const linkForDark = '#9ad0ff'; // readable cyan-ish in dark mode
+            const linkForLight = '#173333'; // darker muted slate for light mode
+            const chosenLink = _dyslexia_pageIsDark ? linkForDark : linkForLight;
+            document.documentElement.style.setProperty('--dyslexia-link', chosenLink);
+        } catch (e) {}
 
         let chosen = null;
         if (bgColor && typeof bgColor === 'string') chosen = bgColor;

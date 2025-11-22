@@ -91,7 +91,31 @@ export function apply() {
 				const box = document.createElement('div');
 				box.className = 'autism-paragraph-summary-box';
 				box.setAttribute('role', 'note');
+				box.setAttribute('tabindex', '0');
+				box.setAttribute('title', 'Click or press Enter to reveal full paragraph');
 				box.textContent = summaryText;
+
+				// Allow users to dismiss the summary box to reveal the paragraph
+				box.addEventListener('click', function () {
+					try {
+						box.remove();
+						if (p.dataset.autismOriginalPosition !== undefined) {
+							p.style.position = p.dataset.autismOriginalPosition || '';
+							delete p.dataset.autismOriginalPosition;
+						}
+						delete p.dataset.autismSummary;
+					} catch (e) {
+						// ignore
+					}
+				});
+
+				// keyboard accessibility: Enter or Space to dismiss
+				box.addEventListener('keydown', function (ev) {
+					if (ev.key === 'Enter' || ev.key === ' ') {
+						ev.preventDefault();
+						this.click();
+					}
+				});
 				// mark as generated
 				p.dataset.autismSummary = '1';
 				p.insertBefore(box, p.firstChild);

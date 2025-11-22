@@ -1,5 +1,4 @@
 export function apply() {
-    // --- CSS ---
     const style = document.createElement("style");
     style.id = "simplify-style";
     style.textContent = `

@@ -1,4 +1,3 @@
-// affections/simplify/settings-popup.js
 // Remove the import and use the class directly
 
 class SimplifySettings {

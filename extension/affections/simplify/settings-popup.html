@@ -1,53 +1,57 @@
-<!-- affections/simplify/settings-popup.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <link rel="stylesheet" href="settings-popup.css">
 </head>
 <body>
-    <h3>Simplify Settings</h3>
-    
-    <div class="setting">
-        <div class="toggle">
-            <label>Enable Simplify</label>
-            <input type="checkbox" id="enableToggle" checked>
+    <div class="settings-card">
+
+        <h3>Simplify Settings</h3>
+
+        <div class="setting">
+            <div class="toggle">
+                <label>Enable Simplify</label>
+                <input type="checkbox" id="enableToggle" checked>
+            </div>
         </div>
-    </div>
-    
-    <div class="setting">
-        <label for="fontFamily" class="fontFamilyLabel">Font Family</label>
-        <select id="fontFamily">
-            <option value='-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'>System Default</option>
-            <option value="Georgia, serif">Georgia</option>
-            <option value='"Times New Roman", Times, serif'>Times New Roman</option>
-            <option value="Arial, Helvetica, sans-serif">Arial</option>
-            <option value='"Helvetica Neue", Helvetica, sans-serif'>Helvetica</option>
-        </select>
-    </div>
-      
-    <div class="setting">
-        <label for="lineHeight" class="lineHeightLabel">Line Height</label>
-        <div class="range-container">
-            <input type="range" id="lineHeight" min="1.2" max="2.0" value="1.5" step="0.1">
-            <div class="range-value" id="lineHeightValue">1.5</div>
+
+        <div class="setting">
+            <label for="fontFamily">Font Family</label>
+            <select id="fontFamily">
+                <option value='-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'>System Default</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value='"Times New Roman", Times, serif'>Times New Roman</option>
+                <option value="Arial, Helvetica, sans-serif">Arial</option>
+                <option value='"Helvetica Neue", Helvetica, sans-serif'>Helvetica</option>
+            </select>
         </div>
-    </div>
-    
-    <div class="setting">
-        <label for="letterSpacing" class="letterSpacingLabel">Letter Spacing</label>
-        <div class="range-container">
-            <input type="range" id="letterSpacing" min="-0.5" max="2.0" value="0" step="0.1">
-            <div class="range-value" id="letterSpacingValue">0px</div>
+
+        <div class="setting">
+            <label for="lineHeight">Line Height</label>
+            <div class="range-container">
+                <input type="range" id="lineHeight" min="1.2" max="2.0" value="1.5" step="0.1">
+                <div id="lineHeightValue">1.5</div>
+            </div>
         </div>
+
+        <div class="setting">
+            <label for="letterSpacing">Letter Spacing</label>
+            <div class="range-container">
+                <input type="range" id="letterSpacing" min="-0.5" max="2.0" value="0" step="0.1">
+                <div id="letterSpacingValue">0px</div>
+            </div>
+        </div>
+
+        <div class="setting">
+            <label for="textColor">Text Color</label>
+            <input type="color" id="textColor" value="#333333">
+        </div>
+
+        <button id="saveBtn">Save Settings</button>
+
     </div>
 
-    <div class="setting">
-        <label for="textColor" class="textColorLabel">Text Color</label>
-        <input type="color" id="textColor" value="#333333">
-    </div>
-    
-    <button id="saveBtn">Save Settings</button>
-    
     <script src="settings-popup.js"></script>
 </body>
+
 </html>

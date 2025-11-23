@@ -1,4 +1,3 @@
-// affections/simplify/settings.js
 // Remove the export/import syntax since we can't use modules in popups easily
 
 class SimplifySettings {

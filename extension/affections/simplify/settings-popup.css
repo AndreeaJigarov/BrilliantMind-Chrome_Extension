@@ -1,74 +1,97 @@
-body{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-  font-family: -apple-system, sans-serif;
-  background: #f9f9f9;
-  flex-wrap: wrap;
+/* Full-page centering */
+body {
+    margin: 0;
+    padding: 0;
+    background: #f4f4f4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 30px;
 }
 
-button {
-  width: 100%;
-  padding: 12px;
-  background: #0066cc;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s, transform 0.1s;
-  margin-top: 5px;
+/* Card container */
+.settings-card {
+    width: 360px;
+    background: white;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
 
-button:hover {
-background: #0055aa;
-}
-
-button:active {
-transform: scale(0.98);
-}
-
+/* Title */
 h3 {
-  text-align: center;
-  font-weight: 600;
-  font-size: 24px;
-  color: #2c3e50;
-  margin-bottom: 5px;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 22px;
+    color: #2c3e50;
 }
 
+/* Each setting block */
 .setting {
-  margin: 15px 0px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
 }
 
-.setting .textColorLabel,
-.setting .fontFamilyLabel,
-.setting .lineHeightLabel,
-.setting .letterSpacingLabel {
-  font-size: 24px;
-  font-weight: 500;
-  color: #34495e;
+.setting label {
+    font-size: 15px;
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 6px;
+    display: block;
 }
 
+/* Toggle row */
+.toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Dropdown */
 #fontFamily {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
 }
 
+/* Range sliders */
+.range-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input[type=range] {
+    width: 100%;
+}
+
+/* Color picker */
 #textColor {
-  width: 100%;
-  height: 40px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+    width: 100%;
+    height: 40px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+/* Save button */
+#saveBtn {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    background: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#saveBtn:hover {
+    background: #0055aa;
 }

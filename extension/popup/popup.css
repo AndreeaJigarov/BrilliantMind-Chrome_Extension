@@ -41,32 +41,30 @@ input[type="checkbox"] {
 }
 
 
-.simplify-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+.simplify-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.simplify-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+.simplify-inline-btn {
+    padding: 4px 8px;
+    background: #e8e8e8;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-left: 8px;
+    white-space: nowrap;
 }
 
-.simplify-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.simplify-inline-btn:hover {
+    background: #dcdcdc;
 }
 
-.simplify-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+.simplify-inline-btn:active {
+    background: #cfcfcf;
+    transform: scale(0.97);
 }

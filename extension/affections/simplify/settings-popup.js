@@ -1,20 +1,22 @@
 // Remove the import and use the class directly
 
 class SimplifySettings {
+  // Retrieve settings from chrome storage
     static async getSettings() {
         return new Promise((resolve) => {
             chrome.storage.sync.get(['simplifySettings'], (result) => {
                 resolve(result.simplifySettings || {
+                    enabled: true,
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                     textColor: '#333',
                     lineHeight: '1.5',
                     letterSpacing: '0',
-                    enabled: true
                 });
             });
         });
     }
 
+    // Save settings to chrome storage
     static async saveSettings(settings) {
         return new Promise((resolve) => {
             chrome.storage.sync.set({ simplifySettings: settings }, resolve);
@@ -40,11 +42,11 @@ function initializeRangeDisplays() {
     }
 }
 
+// Make the settings ui show current settings and save new ones
 document.addEventListener('DOMContentLoaded', async () => {
     const settings = await SimplifySettings.getSettings();
     
     // Load current settings
-    document.getElementById('enableToggle').checked = settings.enabled;
     document.getElementById('fontFamily').value = settings.fontFamily;
     document.getElementById('textColor').value = settings.textColor;
     
@@ -65,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Save settings
     document.getElementById('saveBtn').addEventListener('click', async () => {
         const newSettings = {
-            enabled: document.getElementById('enableToggle').checked,
+            enabled: settings.enabled, // Preserve enabled state
             fontFamily: document.getElementById('fontFamily').value,
             textColor: document.getElementById('textColor').value,
             lineHeight: document.getElementById('lineHeight').value,
@@ -74,6 +76,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         await SimplifySettings.saveSettings(newSettings);
         alert('Settings saved! Refresh pages to see changes.');
-        window.close(); // Close the popup after saving
+        window.close(); // Close the settings tab after saving
     });
 });

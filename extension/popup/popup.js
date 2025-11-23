@@ -59,7 +59,7 @@ function reloadActiveTab() {
     });
 }
 
-// In your main popup.js
+// Open Simplify settings page
 document.getElementById('openSimplifySettings').addEventListener('click', () => {
     chrome.tabs.create({
         url: chrome.runtime.getURL('affections/simplify/settings-popup.html')

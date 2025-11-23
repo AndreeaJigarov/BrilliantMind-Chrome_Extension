@@ -1,4 +1,6 @@
 class SimplifySettings {
+    // We take the settings stored in chrome.storage.sync under 'simplifySettings'
+    // or default values if not present.
     static async getSettings() {
         return new Promise((resolve) => {
             chrome.storage.sync.get(['simplifySettings'], (result) => {
@@ -12,8 +14,9 @@ class SimplifySettings {
     }
 }
 
+// Only run when the document is ready
 export function apply() {
-    console.log("Simplify module activated");
+    // console.log("Simplify module activated");
     
     if (document.readyState === "complete") {
         runSimplify();
@@ -23,25 +26,24 @@ export function apply() {
 }
 
 async function runSimplify() {
-    console.log("Applying familiar styling...");
+    // console.log("Applying familiar styling...");
+    // Get the user stored settings
     const settings = await SimplifySettings.getSettings();
     
     if (!settings.enabled) {
-        console.log("Simplify is disabled");
+        // console.log("Simplify is disabled");
         return;
     }
     
+    // Use user settings to apply styles
     applyConsistentFonts(settings);
     applyBetterContrast(settings);
     applyComfortableSpacing(settings); // Updated to take settings
-    //applyComfortableWidth();
-    //cleanupMedia();
-    //improveCodeAndLists();
 }
 
 function applyConsistentFonts(settings) {
     const css = `
-        /* Step 1: Consistent fonts everywhere */
+        /* Consistent fonts everywhere */
         * {
             font-family: ${settings.fontFamily} !important;
             letter-spacing: ${settings.letterSpacing}px !important;
@@ -55,7 +57,7 @@ function applyConsistentFonts(settings) {
 
 function applyComfortableSpacing(settings) {
     const css = `
-        /* Step 2: Comfortable line height and text spacing */
+        /* Comfortable line height and text spacing */
         body {
             line-height: ${settings.lineHeight} !important;
         }
@@ -75,12 +77,12 @@ function applyComfortableSpacing(settings) {
     style.textContent = css;
     document.head.appendChild(style);
     
-    console.log("Applied comfortable spacing");
+    // console.log("Applied comfortable spacing");
 }
 
 function applyBetterContrast(settings) {
     const css = `
-        /* Step 3: Better text contrast and readability */
+        /* Better text contrast and readability */
         body {
             color: ${settings.textColor} !important;
             background: white !important;
@@ -96,72 +98,6 @@ function applyBetterContrast(settings) {
         
         a:hover {
             opacity: 0.8 !important;
-        }
-    `;
-    
-    const style = document.createElement('style');
-    style.textContent = css;
-    document.head.appendChild(style);
-}
-
-function applyComfortableWidth() {
-    const css = `
-        /* Step 4: Comfortable max width for reading */
-        body {
-            max-width: 800px !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            padding-left: 20px !important;
-            padding-right: 20px !important;
-        }
-    `;
-    
-    const style = document.createElement('style');
-    style.textContent = css;
-    document.head.appendChild(style);
-}
-
-function cleanupMedia() {
-    const css = `
-        /* Step 5: Clean up images and media */
-        img {
-            max-width: 100% !important;
-            height: auto !important;
-            border-radius: 4px !important;
-        }
-        
-        video, iframe {
-            max-width: 100% !important;
-            border-radius: 4px !important;
-        }
-    `;
-    
-    const style = document.createElement('style');
-    style.textContent = css;
-    document.head.appendChild(style);
-}
-
-function improveCodeAndLists() {
-    const css = `
-        /* Step 6: Better code blocks and lists */
-        code, pre {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
-            background: #f5f5f5 !important;
-            border-radius: 3px !important;
-        }
-        
-        pre {
-            padding: 1em !important;
-            overflow-x: auto !important;
-        }
-        
-        ul, ol {
-            margin: 1em 0 !important;
-            padding-left: 2em !important;
-        }
-        
-        li {
-            margin-bottom: 0.5em !important;
         }
     `;
     

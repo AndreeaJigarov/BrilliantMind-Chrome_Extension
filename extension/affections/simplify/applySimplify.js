@@ -35,7 +35,7 @@ async function runSimplify() {
         return;
     }
     
-    // Use the settings to apply styles
+    // Use user settings to apply styles
     applyConsistentFonts(settings);
     applyBetterContrast(settings);
     applyComfortableSpacing(settings); // Updated to take settings

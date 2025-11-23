@@ -5,11 +5,11 @@ class SimplifySettings {
         return new Promise((resolve) => {
             chrome.storage.sync.get(['simplifySettings'], (result) => {
                 resolve(result.simplifySettings || {
+                    enabled: true,
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                     textColor: '#333',
                     lineHeight: '1.5',
                     letterSpacing: '0',
-                    enabled: true
                 });
             });
         });
@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const settings = await SimplifySettings.getSettings();
     
     // Load current settings
-    document.getElementById('enableToggle').checked = settings.enabled;
     document.getElementById('fontFamily').value = settings.fontFamily;
     document.getElementById('textColor').value = settings.textColor;
     
@@ -65,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Save settings
     document.getElementById('saveBtn').addEventListener('click', async () => {
         const newSettings = {
-            enabled: document.getElementById('enableToggle').checked,
+            enabled: settings.enabled, // Preserve enabled state
             fontFamily: document.getElementById('fontFamily').value,
             textColor: document.getElementById('textColor').value,
             lineHeight: document.getElementById('lineHeight').value,

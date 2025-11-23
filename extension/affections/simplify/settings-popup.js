@@ -1,6 +1,7 @@
 // Remove the import and use the class directly
 
 class SimplifySettings {
+  // Retrieve settings from chrome storage
     static async getSettings() {
         return new Promise((resolve) => {
             chrome.storage.sync.get(['simplifySettings'], (result) => {
@@ -15,6 +16,7 @@ class SimplifySettings {
         });
     }
 
+    // Save settings to chrome storage
     static async saveSettings(settings) {
         return new Promise((resolve) => {
             chrome.storage.sync.set({ simplifySettings: settings }, resolve);
@@ -40,6 +42,7 @@ function initializeRangeDisplays() {
     }
 }
 
+// Make the settings ui show current settings and save new ones
 document.addEventListener('DOMContentLoaded', async () => {
     const settings = await SimplifySettings.getSettings();
     
@@ -73,6 +76,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         await SimplifySettings.saveSettings(newSettings);
         alert('Settings saved! Refresh pages to see changes.');
-        window.close(); // Close the popup after saving
+        window.close(); // Close the settings tab after saving
     });
 });

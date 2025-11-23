@@ -1,4 +1,6 @@
 class SimplifySettings {
+    // We take the settings stored in chrome.storage.sync under 'simplifySettings'
+    // or default values if not present.
     static async getSettings() {
         return new Promise((resolve) => {
             chrome.storage.sync.get(['simplifySettings'], (result) => {
@@ -12,6 +14,7 @@ class SimplifySettings {
     }
 }
 
+// Only run when the document is ready
 export function apply() {
     // console.log("Simplify module activated");
     
@@ -24,6 +27,7 @@ export function apply() {
 
 async function runSimplify() {
     // console.log("Applying familiar styling...");
+    // Get the user stored settings
     const settings = await SimplifySettings.getSettings();
     
     if (!settings.enabled) {
@@ -31,6 +35,7 @@ async function runSimplify() {
         return;
     }
     
+    // Use the settings to apply styles
     applyConsistentFonts(settings);
     applyBetterContrast(settings);
     applyComfortableSpacing(settings); // Updated to take settings

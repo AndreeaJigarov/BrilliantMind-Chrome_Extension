@@ -16,8 +16,8 @@ function getRulerColor(bg, custom, isDark) {
 }
 
 // Highlight the current paragraph at the given index using the reading ruler color.
- // @param {number} index - Index of the paragraph to activate.
- // @param {string} color - Background color applied to the active paragraph.
+// @param {number} index - Index of the paragraph to activate.
+// @param {string} color - Background color applied to the active paragraph.
 function showReadingRuler(index, color) {
     if (!_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
     if (_dyslexia_currentParaIndex >= 0 && _dyslexia_currentParaIndex < _dyslexia_paragraphs.length) {
@@ -43,6 +43,54 @@ function clearReadingRuler() {
     _dyslexia_currentParaIndex = -1;
 }
 
+// Add click event listener to paragraphs when reading ruler is enabled
+function addParagraphClickHandlers() {
+    if (!_dyslexia_paragraphs || !_dyslexia_paragraphs.length) return;
+    
+    _dyslexia_paragraphs.forEach((para, index) => {
+        // Remove existing handler to avoid duplicates
+        para.removeEventListener('click', para._dyslexiaClickHandler);
+        
+        // Add new click handler
+        para._dyslexiaClickHandler = () => {
+            if (_dyslexia_rulerEnabled) {
+                showReadingRuler(index, _dyslexia_rulerColor);
+            }
+        };
+        
+        // Add cursor pointer to indicate clickability
+        para.style.cursor = 'pointer';
+        
+        para.addEventListener('click', para._dyslexiaClickHandler);
+    });
+}
+
+// Remove click event listeners when disabling reading ruler
+function removeParagraphClickHandlers() {
+    if (!_dyslexia_paragraphs) return;
+    
+    _dyslexia_paragraphs.forEach(para => {
+        para.removeEventListener('click', para._dyslexiaClickHandler);
+        para.style.cursor = ''; // Reset cursor
+        delete para._dyslexiaClickHandler;
+    });
+}
+
+// Add this to your existing CSS injection or create a new one
+const clickableRulerCSS = `
+.dyslexia-friendly p, .dyslexia-friendly li, .dyslexia-friendly blockquote {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.dyslexia-friendly p:hover, .dyslexia-friendly li:hover, .dyslexia-friendly blockquote:hover {
+    background-color: rgba(184, 196, 182, 0.1) !important;
+}
+`;
+
+// Inject this CSS (add this line somewhere in your apply function)
+injectStyle(clickableRulerCSS, 'dyslexia-clickable-ruler');
+
 //Enables the reading ruler feature and initializes paragraph tracking.
 // @param {string|null} customColor - Optional custom ruler highlight color.
 function enableReadingRuler(customColor) {
@@ -55,12 +103,20 @@ function enableReadingRuler(customColor) {
     let bg = window.getComputedStyle(document.body).backgroundColor;
     let color = getRulerColor(bg, customColor, _dyslexia_pageIsDark);
     _dyslexia_rulerColor = color;
+    
+    // ADD THIS LINE:
+    addParagraphClickHandlers();
+    
     showReadingRuler(0, color);
 }
 
 //Disables the reading ruler and clears all highlights.
 function disableReadingRuler() {
     _dyslexia_rulerEnabled = false;
+    
+    // ADD THIS LINE:
+    removeParagraphClickHandlers();
+    
     clearReadingRuler();
     _dyslexia_paragraphs = null;
 }
@@ -100,7 +156,7 @@ function moveRuler(delta) {
     showReadingRuler(idx, _dyslexia_rulerColor);
 }
 // Clean, single-file implementation for dyslexia-friendly presentation
-//Injects a stylesheet <link> into the document head if not already present.
+ //Injects a stylesheet <link> into the document head if not already present.
 //@param {string} href - URL of the stylesheet.
 //@returns {HTMLLinkElement} The injected or existing link element.
 function injectLink(href) {
